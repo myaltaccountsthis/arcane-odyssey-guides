@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="armor/armor.js"></script>
+  </head>
+  <body onload="run()">
+    <h1>Arcane Odyssey Armor Build</h1>
+    <div class="info">
+      <div>Armor lists all armor pieces</div>
+      <div>Note: Some leggings have the same stats as accessories, so one might<br>be pow and the other def. You can switch them around.</div>
+      <div>Multiplier is based on bonus pow and def over original</div>
+      <br>
+      <div>Use the sliders and options below to specify</div>
+    </div>
+    <br>
+    <form onsubmit="return false">
+      <datalist>
+        <option value="0"></option>
+        <option value="25"></option>
+        <option value="50"></option>
+        <option value="75"></option>
+        <option value="100"></option>
+      </datalist>
+      <div class="slider">
+        <label for="min-power">Min Power</label>
+        <input id="min-power" oninput="minPowerChange(this)" name="min-power" type="range" min="0" max="130" step="1" value="30">
+        <span><input class="input-text" id="min-power-text" oninput="minPowerChange(this)" type="text" value="30"></span>
+      </div>
+      <div class="slider">
+        <label for="vit">Vitality</label>
+        <input id="vit" oninput="vitChange(this)" name="vit" type="range" min="0" max="250" step="1" value="0">
+        <span><input class="input-text" id="vit-text" oninput="vitChange(this)" type="text" value="0"></span>
+      </div>
+      <br>
+      <div class="slider">
+        <label for="use-sunken">Use Sunken</label>
+        <input id="use-sunken" name="use-sunken" type="checkbox" checked>
+      </div>
+      <div class="slider">
+        <label for="use-arcsphere">Use Arcsphere</label>
+        <input id="use-arcsphere" name="use-arcsphere" type="checkbox" checked>
+      </div>
+      <br>
+      <input type="button" onclick="update()" value="Update">
+    </form>
+    <br>
+    <div id="armor-list"></div>
+  </body>
+</html>
