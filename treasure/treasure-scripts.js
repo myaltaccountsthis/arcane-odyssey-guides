@@ -3,7 +3,7 @@ const distanceNames = ["Few paces", "Halfway", "On the edge"];
 const islandNames = [
   "Frostmill Island", "Ravenna", "Forest of Cernunno", "Shell Island",
   "Harvest Island", "Whitesummit", "Munera Garden", "Wind-Row Island",
-  "Palo Town", "Thorin's Refuge", "Limestone Key", "Akursius Keep", "Silverhold"
+  // "Palo Town", "Thorin's Refuge", "Limestone Key", "Akursius Keep", "Silverhold"
 ];
 let directionIndex = 0;
 let distanceIndex = 1;
