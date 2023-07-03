@@ -19,14 +19,15 @@
     <h1>Arcane Odyssey Armor Build</h1>
     <br>
     <div>
-      Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discordapp.com/users/348557609831497730" title="myaltaccountsthis#0507">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
+      Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discordapp.com/users/348557609831497730" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
     </div>
     <div class="info">
       <div>Armor lists all armor pieces</div>
-      <div>Note: Some leggings have the same stats as accessories, so one might<br>be pow and the other def. You can switch them around.</div>
-      <div>Power Boss __ refers to King, Carina… sets</div>
-      <div>Defense Boss __ refers to Cernyx, Argos… sets</div>
-      <div>Multiplier is based on bonus pow and def over original</div>
+      <div>Change Weights to prioritize certain stats</div>
+      <div>Multiplier is based on pow/def and weighted secondary stats</div>
+      <div>Base Multiplier does not include secondary stats</div>
+      <div>Takes about 2500ms with secondary, 100ms without</div>
+      <div>Solver runs faster with tighter bounds</div>
       <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
       <div class="br-small"></div>
 			<div><a href="index.html">More Guides</a></div>
@@ -43,23 +44,121 @@
         <option value="100"></option>
       </datalist>
       <div class="slider">
-        <label for="min-power">Min Power</label>
-        <input id="min-power" oninput="minPowerChange(this)" name="min-power" type="range" min="0" max="130" step="1" value="30">
-        <span><input class="input-text" id="min-power-text" oninput="minPowerChange(this)" type="text" value="30"></span>
-      </div>
-      <div class="slider">
         <label for="vit">Vitality</label>
         <input id="vit" oninput="vitChange(this)" name="vit" type="range" min="0" max="250" step="1" value="0">
         <span><input class="input-text" id="vit-text" oninput="vitChange(this)" type="text" value="0"></span>
       </div>
-      <br>
-      <div class="slider">
+      <div class="br-small"></div>
+      <div>
         <label for="use-sunken">Use Sunken</label>
         <input id="use-sunken" name="use-sunken" type="checkbox" checked>
+        <span></span>
       </div>
-      <div class="slider">
-        <label for="use-arcsphere">Use Arcsphere</label>
-        <input id="use-arcsphere" name="use-arcsphere" type="checkbox" checked>
+      <div>
+        <label for="use-secondary">Use Secondary Stats</label>
+        <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary()" checked>
+        <span></span>
+      </div>
+      <br>
+      <div class="big">Bounds</div>
+      <div class="side-by-side">
+        <div>
+          <div>Min</div>
+          <div class="slider">
+            <label for="min-power">Power</label>
+            <input id="min-power" oninput="minChange(0, this)" name="min-power" type="range" min="0" max="200" step="1" value="30">
+            <span><input class="input-text" id="min-power-text" oninput="minChange(0, this)" type="text" value="30"></span>
+          </div>
+          <div class="slider">
+            <label for="min-defense">Defense</label>
+            <input id="min-defense" oninput="minChange(1, this)" name="min-defense" type="range" min="0" max="3000" step="1" value="300">
+            <span><input class="input-text" id="min-defense-text" oninput="minChange(1, this)" type="text" value="300"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="min-size">Size</label>
+            <input id="min-size" oninput="minChange(2, this)" name="min-size" type="range" min="0" max="400" step="1" value="0">
+            <span><input class="input-text" id="min-size-text" oninput="minChange(2, this)" type="text" value="0"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="min-intensity">Intensity</label>
+            <input id="min-intensity" oninput="minChange(3, this)" name="min-intensity" type="range" min="0" max="400" step="1" value="0">
+            <span><input class="input-text" id="min-intensity-text" oninput="minChange(3, this)" type="text" value="0"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="min-speed">Speed</label>
+            <input id="min-speed" oninput="minChange(4, this)" name="min-speed" type="range" min="0" max="400" step="1" value="0">
+            <span><input class="input-text" id="min-speed-text" oninput="minChange(4, this)" type="text" value="0"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="min-agility">Agility</label>
+            <input id="min-agility" oninput="minChange(5, this)" name="min-agility" type="range" min="0" max="400" step="1" value="0">
+            <span><input class="input-text" id="min-agility-text" oninput="minChange(5, this)" type="text" value="0"></span>
+          </div>
+        </div>
+        <div>
+          <div>Max</div>
+          <div class="slider">
+            <label for="max-power">Power</label>
+            <input id="max-power" oninput="maxChange(0, this)" name="max-power" type="range" min="0" max="200" step="1" value="200">
+            <span><input class="input-text" id="max-power-text" oninput="maxChange(0, this)" type="text" value="200"></span>
+          </div>
+          <div class="slider">
+            <label for="max-defense">Defense</label>
+            <input id="max-defense" oninput="maxChange(1, this)" name="max-defense" type="range" min="0" max="3000" step="1" value="3000">
+            <span><input class="input-text" id="max-defense-text" oninput="maxChange(1, this)" type="text" value="3000"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="max-size">Size</label>
+            <input id="max-size" oninput="maxChange(2, this)" name="max-size" type="range" min="0" max="400" step="1" value="400">
+            <span><input class="input-text" id="max-size-text" oninput="maxChange(2, this)" type="text" value="400"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="max-intensity">Intensity</label>
+            <input id="max-intensity" oninput="maxChange(3, this)" name="max-intensity" type="range" min="0" max="400" step="1" value="400">
+            <span><input class="input-text" id="max-intensity-text" oninput="maxChange(3, this)" type="text" value="400"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="max-speed">Speed</label>
+            <input id="max-speed" oninput="maxChange(4, this)" name="max-speed" type="range" min="0" max="400" step="1" value="400">
+            <span><input class="input-text" id="max-speed-text" oninput="maxChange(4, this)" type="text" value="400"></span>
+          </div>
+          <div class="slider secondary">
+            <label for="max-agility">Agility</label>
+            <input id="max-agility" oninput="maxChange(5, this)" name="max-agility" type="range" min="0" max="400" step="1" value="400">
+            <span><input class="input-text" id="max-agility-text" oninput="maxChange(5, this)" type="text" value="400"></span>
+          </div>
+        </div>
+      </div>
+      <br>
+      <div class="secondary">
+        <div class="big">Weights</div>
+        <div>
+          <div class="slider">
+            <label for="weight-size">Size</label>
+            <input id="weight-size" oninput="weightChange(2, this)" name="weight-size" type="range" min="0" max="100" step="1" value="25">
+            <span><input class="input-text" id="weight-size-text" oninput="weightChange(2, this)" type="text" value="25"></span>
+          </div>
+          <div class="slider">
+            <label for="weight-intensity">Intensity</label>
+            <input id="weight-intensity" oninput="weightChange(3, this)" name="weight-intensity" type="range" min="0" max="100" step="1" value="50">
+            <span><input class="input-text" id="weight-intensity-text" oninput="weightChange(3, this)" type="text" value="50"></span>
+          </div>
+          <div class="slider">
+            <label for="mode-bonus">Aura Bonus</label>
+            <input id="mode-bonus" oninput="modeBonusChange(this)" name="mode-bonus" type="range" min="0" max="100" step="1" value="20">
+            <span><input class="input-text" id="mode-bonus-text" oninput="modeBonusChange(this)" type="text" value="20"></span>
+          </div>
+          <div class="slider">
+            <label for="weight-speed">Speed</label>
+            <input id="weight-speed" oninput="weightChange(4, this)" name="weight-speed" type="range" min="0" max="100" step="1" value="50">
+            <span><input class="input-text" id="weight-speed-text" oninput="weightChange(4, this)" type="text" value="50"></span>
+          </div>
+          <div class="slider">
+            <label for="weight-agility">Agility</label>
+            <input id="weight-agility" oninput="weightChange(5, this)" name="weight-agility" type="range" min="0" max="100" step="1" value="40">
+            <span><input class="input-text" id="weight-agility-text" oninput="weightChange(5, this)" type="text" value="40"></span>
+          </div>
+        </div>
       </div>
       <br>
       <input type="button" onclick="update()" value="Update">

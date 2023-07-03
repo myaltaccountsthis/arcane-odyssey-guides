@@ -10,16 +10,19 @@ iframe {
 }
 
 .input-text {
-  width: 30px;
+  border-width: 2px;
+  border-radius: 4px;
+  width: 48px;
 }
 
 .slider {
   display: flex;
   justify-content: center;
   column-gap: 8px;
+  margin: 2px auto;
 }
 .slider > span, .slider > label {
-  flex: 0 1 140px;
+  flex: 1 1 50px;
 }
 .slider > span {
   text-align: left;
@@ -28,17 +31,27 @@ iframe {
   text-align: right;
 }
 
+.side-by-side > * {
+  min-width: 307px;
+}
+
 #armor-list {
   display: flex;
   flex-direction: column;
-  row-gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 10px;
+  column-gap: 10px;
   margin: auto;
-  max-width: 400px;
-  width: 60%;
+  width: 90%;
+}
+#armor-list > * {
+  width: 100%;
 }
 
 .list-element {
   border: 2px solid black;
+  border-radius: 8px;
   padding: 4px;
 }
 
@@ -56,12 +69,45 @@ table {
   height: .8em;
 }
 
-.pow {
+/* Stat Classes */
+.power {
   color: rgb(255, 110, 10);
 }
-.def {
+.defense {
   color: rgb(140, 130, 130);
 }
+.size {
+  color: rgb(21, 193, 21);
+}
+.intensity {
+  color: rgb(197, 192, 52);
+}
+.speed {
+  color: rgb(39, 115, 209);
+}
+.agility {
+  color: rgb(43, 199, 213);
+}
+/* Armor Classes */
+.argos {
+  color: rgb(229, 166, 30);
+}
+.carina {
+  color: rgb(246, 49, 18);
+}
+.cernyx {
+  color: rgb(56, 135, 67);
+}
+.elius {
+  color: rgb(142, 185, 1);
+}
+.king {
+  color: rgb(219, 84, 21);
+}
+.sunken {
+  color: rgb(22, 140, 180);
+}
+
 
 .icon {
   width: 24px;
@@ -73,6 +119,10 @@ table {
 h1 {
   text-align: center;
   font-size: xx-large;
+}
+
+.big {
+  font-size: larger;
 }
 
 .flex {
@@ -92,6 +142,10 @@ h1 {
 
 .flex > div {
   min-width: 150px;
+}
+
+.side-by-side > * {
+  display: inline-block;
 }
 
 svg {
@@ -141,6 +195,31 @@ button:hover {
 
 @media (min-width: 721px) {
   .flex {
-    width: 30%;
+    width: 40%;
+  }
+  
+  #armor-list {
+    flex-direction: row;
+  }
+  #armor-list > * {
+    width: calc(50% - 5px);
+  }
+}
+
+@media (min-width: 1081px) {
+  #armor-list > * {
+    width: calc(33.3% - 6.67px);
+  }
+}
+
+@media (min-width: 1441px) {
+  #armor-list > * {
+    width: calc(25% - 7.5px);
+  }
+}
+
+@media (min-width: 1801px) {
+  #armor-list > * {
+    width: calc(20% - 8px);
   }
 }
