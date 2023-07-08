@@ -9,5 +9,4 @@ https://myaltaccountsthis.github.io/arcane-odyssey-guides/
 [Treasure Chart Locator](https://myaltaccountsthis.github.io/arcane-odyssey-guides/treasure)
 
 ## Known Issues
-Armor Calculator for secondary stat-based builds may not be fully
-accurate due to optimizations needed to improve run time.
+Armor Calculator for secondary stat-based builds may not be fully accurate due to optimizations needed to improve run time.
