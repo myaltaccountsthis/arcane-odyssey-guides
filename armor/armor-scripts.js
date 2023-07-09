@@ -351,41 +351,52 @@ function calculateCombinations(numTypes, slots, forceLength = 6) {
 
 // Returns a build with the best multiplier with enchants and jewels (optional)
 function getBestBuild(build, useJewels) {
-  const nextBuild = getBestBuildHelper(build, 5, EnchantStats, "enchants");
-  if (nextBuild == null || !useJewels)
-    return nextBuild;
-  const bestBuild = getBestBuildHelper(nextBuild, build.jewelSlots, JewelStats, "jewels");
-  return bestBuild;
+  return getBestBuildHelper(build, 5, useJewels ? build.jewelSlots : 0);
 }
 
 // Returns a build after recursion of the best build after enchants and jewels (optional)
 // statGain is an array of the stat gains from enchants/jewels, arrName is either "enchants" or "jewels"
-function getBestBuildHelper(build, left, statGain, arrName) {
-  if (left == 0)
+function getBestBuildHelper(build, enchantsLeft, jewelsLeft) {
+  if (enchantsLeft == 0 && jewelsLeft == 0)
     return build;
   const builds = [];
-  for (const i in statGain) {
-    const stats = build.stats.slice();
-    stats[i] += statGain[i];
+  const mult = build.multiplier
+  const dict = {};
+  const jewelSet = new CustomSet();
+  if (enchantsLeft > 0) {
+    for (const i in EnchantStats) {
+      const stats = build.stats.slice();
+      stats[i] += EnchantStats[i];
 
-    let enchants = build.enchants;
-    let jewels = build.jewels;
-    if (arrName === "enchants") {
+      let enchants = build.enchants;
       enchants = build.enchants.slice();
       enchants[i]++;
+      const newBuild = new Build(build.armorList, build.vit, stats, enchants, build.jewels.slice());
+      if (!newBuild.isValid())
+        continue;
+      builds.push(newBuild)
+      dict[newBuild] = newBuild.multiplier / mult - 1;
     }
-    else if (arrName === "jewels") {
+  }
+  if (jewelsLeft > 0) {
+    for (const i in JewelStats) {
+      const stats = build.stats.slice();
+      stats[i] += JewelStats[i];
+
+      let jewels = build.jewels;
       jewels = build.jewels.slice();
       jewels[i]++;
+      const newBuild = new Build(build.armorList, build.vit, stats, build.enchants.slice(), jewels);
+      if (!newBuild.isValid())
+        continue;
+      builds.push(newBuild)
+      dict[newBuild] = (newBuild.multiplier / mult - 1) * EnchantStats[0] / JewelStats[0];
+      jewelSet.add(newBuild);
     }
-    const newBuild = new Build(build.armorList, build.vit, stats, enchants, jewels);
-    if (!newBuild.isValid())
-      continue;
-    builds.push(newBuild)
   }
-  builds.sort((a, b) => b.compare(a));
+  builds.sort((a, b) => dict[b] - dict[a]);
   for (const newBuild of builds) {
-    const result = getBestBuildHelper(newBuild, left - 1, statGain, arrName);
+    const result = getBestBuildHelper(newBuild, jewelSet.contains(newBuild) ? enchantsLeft : enchantsLeft - 1, jewelSet.contains(newBuild) ? jewelsLeft - 1 : jewelsLeft);
     if (result != null)
       return result;
   }
