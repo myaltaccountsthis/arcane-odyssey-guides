@@ -337,7 +337,7 @@ function estimateMultComplex(stat) {
 
 // make sure the stats can become valid given the enchants and jewels left
 function isValid(stats, enchantsLeft, jewelsLeft) {
-  if (stats.map((stat, i) => stat > maxStats[i]).reduce((acc, val) => acc || val, false))
+  if (!stats.every((stat, i) => stat <= maxStats[i]))
     return false;
   calls3++;
   let statsLeft = enchantsLeft * EnchantStats[0] + JewelStats[0] * jewelsLeft;
@@ -383,9 +383,12 @@ function calculateCombinations(numTypes, slots, forceLength = 6) {
   return combinations.map(arr => arr.concat(Array(forceLength - numTypes).fill(0))).map(stats => new Armor("e", stats));
 }
 
+let count = 0, maxCount = 0;
+
 // Returns a build with the best multiplier with enchants and jewels (optional)
 function getBestBuild(build, useJewels) {
   const available = new CustomSet(i => i, (a, b) => a == b);
+  const builds = new CustomSet(build => build.hash, (a, b) => a.equals(b) && a.enchantsLeft() == b.enchantsLeft());
   for (let i = 0; i < EnchantStats.length; i++) {
     if (!includeSecondary && i >= 2)
       break;
@@ -393,19 +396,21 @@ function getBestBuild(build, useJewels) {
     if (useJewels)
       available.add(i + EnchantStats.length);
   }
-  const bestBuild = getBestBuildHelper(build, 5, useJewels ? build.jewelSlots : 0, Array(12).fill(0), available);
+  count = 0;
+  const bestBuild = getBestBuildHelper(build, 5, useJewels ? build.jewelSlots : 0, Array(12).fill(0), available, builds);
   if (bestBuild == null) {
-    console.log(build);
+    // console.log(build);
   }
   return bestBuild;
 }
 
 // Returns a build after recursion of the best build after enchants and jewels (optional)
 // statGain is an array of the stat gains from enchants/jewels, arrName is either "enchants" or "jewels"
-function getBestBuildHelper(build, enchantsLeft, jewelsLeft, multipliers, available) {
+function getBestBuildHelper(build, enchantsLeft, jewelsLeft, multipliers, available, builds) {
   if (enchantsLeft == 0 && jewelsLeft == 0)
     return build;
   calls2++;
+  count++;
   const mult = build.multiplier;
   const removed = new CustomSet(i => i, (a, b) => a == b);
   for (const i of available.toList()) {
@@ -452,7 +457,7 @@ function getBestBuildHelper(build, enchantsLeft, jewelsLeft, multipliers, availa
       }
     }
   }
-  
+
   const order = available.toList().sort((a, b) => multipliers[b] - multipliers[a]);
   for (const i of order) {
     const index = parseInt(i);
@@ -469,11 +474,15 @@ function getBestBuildHelper(build, enchantsLeft, jewelsLeft, multipliers, availa
     }
 
     const newBuild = new Build(build.armorList, build.vit, stats, enchants, jewels)
+    if (builds.contains(newBuild))
+      continue;
+    else
+      builds.add(newBuild);
     const newMultipliers = multipliers.slice();
     newMultipliers[index % 6] = 0;
     newMultipliers[index % 6 + 6] = 0;
-    const result = getBestBuildHelper(newBuild, index >= EnchantStats.length ? enchantsLeft : enchantsLeft - 1, index >= EnchantStats.length ? jewelsLeft - 1 : jewelsLeft, newMultipliers, available);
-    if (result != null) {
+    const result = getBestBuildHelper(newBuild, index >= EnchantStats.length ? enchantsLeft : enchantsLeft - 1, index >= EnchantStats.length ? jewelsLeft - 1 : jewelsLeft, newMultipliers, available, builds);
+    if (result != null || count > 300) {
       return result;
     }
   }
