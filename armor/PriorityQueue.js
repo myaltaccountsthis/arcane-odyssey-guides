@@ -6,7 +6,7 @@ class PriorityQueue {
   constructor(compareFunction = (a, b) => b.compare(a), arr) {
     this.compareFunction = compareFunction;
     if (arr) {
-      this.heap = arr;
+      this.heap = arr.slice();
       this.size = arr.length;
       for (let i = Math.floor(this.size / 2) - 1; i >= 0; i--) {
         this.siftDown(i);
@@ -87,5 +87,16 @@ class PriorityQueue {
 
   isEmpty() {
     return this.size == 0;
+  }
+
+  toList() {
+    const list = [];
+    while (!this.isEmpty()) {
+      list.push(this.poll());
+    }
+    for (const e of list) {
+      this.offer(e);
+    }
+    return list;
   }
 }
