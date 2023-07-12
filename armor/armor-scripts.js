@@ -1,4 +1,5 @@
 // For Armor.html
+// requires CustomSet.js, PriorityQueue.js
 
 // Config
 let MODE_BONUS = .2;
@@ -27,104 +28,6 @@ function getSpeedWeight() {
 }
 function getAgilityWeight() {
   return weights[5];
-}
-
-// Custom set (hashmap implementation)
-
-class Entry {
-  constructor(key) {
-    this.key = key;
-    this.next = null;
-  }
-}
-
-class CustomSet {
-  constructor(hashFunction = build => build.hash, equalsFunction = (a, b) => a.equals(b)) {
-    this.hashFunction = hashFunction;
-    this.equalsFunction = equalsFunction;
-    // we are dealing with hundreds of thousands of builds
-    this.clear();
-  }
-
-  hash(key) {
-    return this.hashFunction(key) % this.entries.length;
-  }
-
-  add(key) {
-    const hash = this.hashFunction(key);
-    let entry = this.entries[hash];
-    if (entry == null) {
-      this.entries[hash] = new Entry(key);
-    }
-    else {
-      while (entry.next != null && !this.equalsFunction(entry.key, key)) {
-        entry = entry.next;
-      }
-      if (this.equalsFunction(entry.key, key)) {
-        return false;
-      }
-      entry.next = new Entry(key);
-    }
-    this.size++;
-    return true;
-  }
-
-  addAll(arr) {
-    for (const key of arr) {
-      this.add(key);
-    }
-  }
-
-  contains(key) {
-    const hash = this.hashFunction(key);
-    let entry = this.entries[hash];
-    while (entry != null) {
-      if (this.equalsFunction(entry.key, key)) {
-        return true;
-      }
-      entry = entry.next;
-    }
-    return false;
-  }
-
-  remove(key) {
-    const hash = this.hashFunction(key);
-    let entry = this.entries[hash];
-    if (entry == null) {
-      return false;
-    }
-    if (this.equalsFunction(entry.key, key)) {
-      this.entries[hash] = entry.next;
-    }
-    else {
-      while (entry.next != null && !this.equalsFunction(entry.next.key, key)) {
-        entry = entry.next;
-      }
-      if (entry.next == null) {
-        return false;
-      }
-      entry.next = entry.next.next;
-    }
-    this.size--;
-    return true;
-  }
-
-  clear() {
-    this.entries = new Array(1000);
-    this.size = 0;
-  }
-
-  toList() {
-    const list = [];
-    for (const i in this.entries) {
-      let entry = this.entries[i];
-      while (entry != null) {
-        list.push(entry.key);
-        entry = entry.next;
-      }
-    }
-    return list;
-  }
 }
 
 // Data.py
@@ -216,7 +119,7 @@ class Build {
   isValid(countJewels = true, countEnchants = true) {
     if (!countEnchants && !countJewels)
       return this.stats.every((val, i) => val >= minStats[i] && val <= maxStats[i]);
-    return isValid(this.stats, countEnchants ? this.enchantsLeft() : 0, countJewels ? this.jewelsLeft() : 0)
+    return isValidHelper(this.stats, countEnchants ? this.enchantsLeft() : 0, countJewels ? this.jewelsLeft() : 0)
     /*
     if (boundMin && boundMax)
       return this.stats.every((val, i) => val >= minStats[i] && val <= maxStats[i]);
@@ -268,6 +171,7 @@ Build.prototype.toString = function() {
   return output;
 }
 
+/*
 // An unfinished build (used by helper methods)
 class BuildInProgress {
   constructor(vit, statCode, enchantCode, jewelCode) {
@@ -277,6 +181,7 @@ class BuildInProgress {
     this.multiplier = getMult(vit, statCodeToArray(statCode));
   }
 }
+*/
 
 function getHash(stats) {
   let num = 0;
@@ -308,7 +213,7 @@ function getMultiplierColorStr(mult) {
 }
 
 function getFormattedMultiplierStr(mult) {
-  return `${Math.floor(mult)}.${(Math.floor(mult * 1000) % 1000).toString().padStart(3, "0")}`;
+  return `${Math.floor(mult)}.${(Math.floor(mult * 10000) % 10000).toString().padStart(4, "0")}`;
 }
 
 // pow/def, vit multiplier without weight
@@ -336,7 +241,7 @@ function estimateMultComplex(stat) {
 }
 
 // make sure the stats can become valid given the enchants and jewels left
-function isValid(stats, enchantsLeft, jewelsLeft) {
+function isValidHelper(stats, enchantsLeft, jewelsLeft) {
   if (!stats.every((stat, i) => stat <= maxStats[i]))
     return false;
   calls3++;
@@ -438,13 +343,13 @@ function getBestBuildHelper(build, enchantsLeft, jewelsLeft, multipliers, availa
       stats[index - 6] += JewelStats[index - 6];
     
     if (index >= EnchantStats.length) {
-      if (!isValid(stats, enchantsLeft, jewelsLeft - 1)) {
+      if (!isValidHelper(stats, enchantsLeft, jewelsLeft - 1)) {
         available.remove(index);
         removed.add(index);
         continue;
       }
     }
-    else if (!isValid(stats, enchantsLeft - 1, jewelsLeft)) {
+    else if (!isValidHelper(stats, enchantsLeft - 1, jewelsLeft)) {
       available.remove(index);
       removed.add(index);
       continue;
@@ -515,7 +420,7 @@ async function getInfo(fileName) {
 }
 
 // The main function. Returns an array of the top 100 builds
-function solve(vit, useSunken, useAmulet, useJewels) {
+function solve(vit, useSunken, useAmulet, useJewels, uniqueOnly) {
   // tracking vars
   let validArmor = 0, actualArmor = 0, nArmor = 0, dupesArmor = 0, purgesArmor = 0;
   // let validEnchant = 0, actualEnchant = 0, nEnchant = 0, dupesEnchant = 0, purgesEnchant = 0;
@@ -581,11 +486,44 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   }
   log(console.timeEnd, "solveArmor");
   log(console.time, "solveV2");
-  const builds = armorSet.toList().map(build => getBestBuild(build, useJewels)).filter(build => build != null);
+  let builds = armorSet.toList().map(build => getBestBuild(build, useJewels)).filter(build => build != null);
   log(console.timeEnd, "solveV2");
+  builds = purge(builds, BUILD_SIZE);
+  if (uniqueOnly)
+    return builds;
+  
+  log(console.time, "solvePQ");
+  // From the best unique builds, get the top BUILD_SIZE builds with any enchants/jewels
+  const pq = new PriorityQueue(undefined, builds);
+  const buildSet = new CustomSet();
+  buildSet.addAll(builds);
+  const armorListSet = new CustomSet(armorList => armorList.map(armor => armor.name).join(" "), (a, b) => a == b);
+  const topBuilds = [];
+  while (!pq.isEmpty() && topBuilds.length < BUILD_SIZE) {
+    const build = pq.poll();
+    topBuilds.push(build);
+    if (!armorListSet.contains(build.armorList)) {
+      armorListSet.add(build.armorList);
+      const armorList = build.armorList;
+      const vit = build.vit;
+      const armorStats = StatOrder.map((_, i) => armorList.map(armor => armor.stats[i]).reduce((a, b) => a + b, 0));
+      for (const enchantCombination of calculateCombinations(6, 5)) {
+        for (const jewelCombination of calculateCombinations(2, build.jewelSlots)) {
+          const stats = StatOrder.map((_, i) => enchantCombination.stats[i] * EnchantStats[i] + jewelCombination.stats[i] * JewelStats[i] + armorStats[i]);
+          const newBuild = new Build(armorList, vit, stats, enchantCombination.stats, jewelCombination.stats);
+          if (newBuild.multiplier > builds[builds.length - 1].multiplier && newBuild.isValid(false, false) && !buildSet.contains(newBuild)) {
+            buildSet.add(newBuild);
+            pq.offer(newBuild);
+          }
+        }
+      }
+    }
+  }
+  log(console.timeEnd, "solvePQ");
+
   log(console.log, `${armorSet.size} armor, ${nArmor} armor total, ${validArmor} valid, ${dupesArmor} armor dupes, ${purgesArmor} armor purges`);
   log(console.log, `${constructions} constructions, ${calls} equals calls, ${calls2} best helper calls, ${calls3} isValid calls`);
-  return purge(builds, BUILD_SIZE);
+  return topBuilds;
   /*
   const enchantSet = new CustomSet();
   log(console.time, "solveEnchant");
@@ -691,15 +629,15 @@ async function update() {
   const useSunken = document.getElementById("use-sunken").checked;
   const useAmulet = document.getElementById("use-amulet").checked;
   const useJewels = document.getElementById("use-jewels").checked;
+  const uniqueOnly = document.getElementById("unique-only").checked;
   const armorList = document.getElementById("armor-list");
 
   armorList.innerHTML = "<div>Loading...</div>";
   setTimeout(async () => {
-    const start = performance.now();
     log(console.log, "-".repeat(10));
     log(console.time, "updateTotal");
     log(console.time, "solve");
-    const builds = solve(vit, useSunken, useAmulet, useJewels).slice(0, 100);
+    const builds = solve(vit, useSunken, useAmulet, useJewels, uniqueOnly).slice(0, 100);
     log(console.timeEnd, "solve");
     log(console.time, "updateHTML");
     if (builds.length === 0) {
