@@ -157,7 +157,7 @@ class Build {
     this.jewels = jewels;
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
-    this.multiplier = getMult(this) * (1 + .01 * getExtraStats(this));
+    this.multiplier = getMult(this) * (1 + .005 * getExtraStats(this));
     this.useEnchants = useEnchants;
     this.useJewels = useJewels;
   }
