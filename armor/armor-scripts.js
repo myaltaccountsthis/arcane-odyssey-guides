@@ -236,7 +236,7 @@ class Build {
   }
 }
 Build.prototype.toString = function() {
-  let output = `Multiplier: ${(Math.round(this.multiplier * 1000) / 1000)}\nBonus Stats: ${this.stats.join("/")}\nArmor: ${this.armorList.join(" ")}`;
+  let output = `Multiplier: ${(Math.round(this.multiplier * 10000) / 10000)}\nBonus Stats: ${this.stats.join("/")}\nArmor: ${this.armorList.join(" ")}`;
   output += `\nEnchants: ${this.enchants.join('/')}`;
   return output;
 }
@@ -261,7 +261,7 @@ function getMultiplierColorStr(mult) {
 }
 
 function getFormattedMultiplierStr(mult) {
-  return `${Math.floor(mult)}.${(Math.floor(mult * 1000) % 1000).toString().padStart(3, "0")}`;
+  return `${Math.floor(mult)}.${(Math.floor(mult * 10000) % 10000).toString().padStart(4, "0")}`;
 }
 
 // pow/def, vit multiplier without weight
@@ -308,7 +308,7 @@ const EnchantStats = [];
 const JewelStats = [];
 
 const BUILD_SIZE = 100;
-const ARMOR_SIZE = 1000; 
+const ARMOR_SIZE = 200;
 
 // Combinations: [[number]], index: enchant index, arr, remaining: number
 // Should be called only once
@@ -461,7 +461,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   if (useJewels) {
     log(console.time, "solveJewels");
     for (const enchantBuild of enchantArr) {
-      const jewelCombinations = enchantBuild.armorList[4].name.endsWith("Amulet") ? calculateCombinations(2, 8) : calculateCombinations(2, 10);
+      const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.armorList[4].name.endsWith("Amulet") ? 8 : 10);
       for (const jewels of jewelCombinations) {
         const combination = jewels.stats;
         const stats = enchantBuild.stats.slice();
