@@ -138,9 +138,10 @@ const BASE_ATTACK = 144;
 let calls = 0;
 
 class Armor {
-  constructor(name, stats) {
+  constructor(name, stats, jewelSlots) {
     this.name = name;
     this.stats = stats;
+    this.jewelSlots = jewelSlots;
     this.nonZeroStats = stats.map((val, i) => i).filter(i => stats[i] > 0);
   }
 }
@@ -155,6 +156,7 @@ class Build {
     this.vit = vit;
     this.enchants = enchants;
     this.jewels = jewels;
+    this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
     this.multiplier = getMult(this) * (1 + .005 * getExtraStats(this));
@@ -293,7 +295,7 @@ function getExtraStats(build) {
   if (build.useEnchants)
     statsLeft += 5 * EnchantStats[0];
   if (build.useJewels)
-    statsLeft += JewelStats[0] * (build.armorList[4].name.endsWith("Amulet") ? 8 : 10);
+    statsLeft += JewelStats[0] * (build.jewelSlots);
   for (const i in build.stats) {
     statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * EnchantStats[0] / EnchantStats[i];
   }
@@ -344,10 +346,11 @@ async function getInfo(fileName) {
     const category = words[0];
     const name = words[1];
     const stats = [];
-    for (let i = 2; i < words.length; i++) {
+    for (let i = 2; i < 8; i++) {
       stats.push(parseInt(words[i]));
     }
-    const armor = new Armor(name, stats);
+    const jewels = words.length > 8 ? parseInt(words[8]) : 0;
+    const armor = new Armor(name, stats, jewels);
     const index = Order.indexOf(category);
     Armors[index].push(armor);
     if (index == Order.indexOf("Jewel"))
@@ -461,7 +464,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   if (useJewels) {
     log(console.time, "solveJewels");
     for (const enchantBuild of enchantArr) {
-      const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.armorList[4].name.endsWith("Amulet") ? 8 : 10);
+      const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
       for (const jewels of jewelCombinations) {
         const combination = jewels.stats;
         const stats = enchantBuild.stats.slice();
