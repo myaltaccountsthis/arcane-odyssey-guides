@@ -128,9 +128,9 @@ class CustomSet {
 }
 
 // Data.py
-const BASE_HEALTH = 968;
-const HEALTH_PER_VIT = 4;
-const BASE_ATTACK = 144;
+const MAX_LEVEL = 125;
+const BASE_HEALTH = 100 + 7 * (MAX_LEVEL - 1);
+const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
 
 // Stat order: power defense size intensity speed agility
 
@@ -268,12 +268,12 @@ function getFormattedMultiplierStr(mult) {
 
 // pow/def, vit multiplier without weight
 function getBaseMult(build) {
-  return (BASE_HEALTH + HEALTH_PER_VIT * build.vit + build.stats[1]) / BASE_HEALTH * (build.stats[0] + BASE_ATTACK) / BASE_ATTACK;
+  return (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) / BASE_ATTACK;
 }
 
 // Returns modified multiplier affected by weight
 function getMult(build) {
-  const mult = (1 + (HEALTH_PER_VIT * build.vit + build.stats[1]) * getDefenseWeight() / BASE_HEALTH) * (1 + (build.stats[0]) * getPowerWeight() / BASE_ATTACK);
+  const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
   if (includeSecondary)
     return mult * otherMult(build);
   return mult;
@@ -291,6 +291,7 @@ function estimateMultComplex(stat) {
   return Math.pow(.01194 * Math.pow(stat, 1.188) + 1, .3415) + .06195 * Math.pow(stat, .2992) - .0893 * Math.log(stat + 1) / Math.log(30);
 }
 
+// Estimates the number of stats (translated to power) left after subtracting minimum stats
 function getExtraStats(build) {
   let statsLeft = 0;
   if (build.useEnchants)
@@ -370,7 +371,6 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   let validEnchant = 0, actualEnchant = 0, nEnchant = 0, dupesEnchant = 0, purgesEnchant = 0;
   let validJewel = 0, actualJewel = 0, nJewel = 0, dupesJewel = 0, purgesJewel = 0;
   calls = 0;
-  // TODO subtract jewels if using them
   // let minArmorStats = minStats.map((val, i) => Math.max(val - Armors[4][i].stats[i] * 5 - (useJewels ? Armors[6][i].stats[i] * 10 : 0), 0));
   const armorSet = new CustomSet();
   log(console.time, "solveArmor");
@@ -429,8 +429,8 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   log(console.timeEnd, "solveArmor");
   const enchantSet = new CustomSet();
   log(console.time, "solveEnchant");
+  // Get best builds with enchants
   const enchantCombinations = calculateCombinations(includeSecondary ? 6 : 2, 5);
-  // TODO should only be applied if using jewels
   for (const armorBuild of armorArr) {
     for (const enchants of enchantCombinations) {
       const combination = enchants.stats;
@@ -462,6 +462,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   purgesEnchant++;
   log(console.timeEnd, "solveEnchant");
   const jewelSet = useJewels ? new CustomSet() : enchantSet;
+  // Get best builds with jewels if useJewels
   if (useJewels) {
     log(console.time, "solveJewels");
     for (const enchantBuild of enchantArr) {
@@ -520,7 +521,7 @@ async function run() {
   modeBonusChange(document.getElementById("mode-bonus"));
 
   log(console.time, "getInfo");
-  await getInfo("infojewels.json");
+  await getInfo("info.json");
   log(console.timeEnd, "getInfo");
 
   // update();
