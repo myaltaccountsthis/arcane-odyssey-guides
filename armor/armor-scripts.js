@@ -131,6 +131,7 @@ class CustomSet {
 const MAX_LEVEL = 125;
 const BASE_HEALTH = 100 + 7 * (MAX_LEVEL - 1);
 const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
+const HEALTH_PER_VIT = 4;
 
 // Stat order: power defense size intensity speed agility
 
@@ -273,7 +274,8 @@ function getBaseMult(build) {
 
 // Returns modified multiplier affected by weight
 function getMult(build) {
-  const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
+  // const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
+  const mult = (BASE_HEALTH + build.vit * HEALTH_PER_VIT + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0]) * (1 - build.vit / (MAX_LEVEL * 2) * .5) * getPowerWeight() / BASE_ATTACK;
   if (includeSecondary)
     return mult * otherMult(build);
   return mult;
