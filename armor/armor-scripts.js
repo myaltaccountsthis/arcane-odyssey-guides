@@ -271,7 +271,7 @@ function getFormattedMultiplierStr(mult) {
 }
 
 // pow/def, vit multiplier without weight
-function getBaseMult(build) {v
+function getBaseMult(build) {
   return (BASE_HEALTH + build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * (BASE_ATTACK + build.stats[0]) * (1 - build.vit / (MAX_LEVEL * 2) * .5) / BASE_ATTACK;
 }
 
