@@ -163,9 +163,9 @@ button {
   padding: 0px;
   border: 0;
   background-color: transparent;
-  font-size: medium;
+  /* font-size: medium; */
 }
-button#visibility_button {
+button#visibility-button {
   font-size: large;
 }
 
