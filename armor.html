@@ -15,13 +15,14 @@
       gtag('config', 'G-YC04R7C65B');
     </script>
   </head>
-  <body onload="run()">
+  <body onload="run(); onBodyLoad()">
     <h1>Arcane Odyssey Armor Build</h1>
+    <button id="visibility-button" class="toggle" onclick="toggleInfo(this)">Hide Info</button>
     <br>
-    <div>
-      Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discordapp.com/users/348557609831497730" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
-    </div>
-    <div class="info">
+    <div id="info">
+      <div>
+        Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discordapp.com/users/348557609831497730" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
+      </div>
       <div>Armor lists all armor pieces</div>
       <div>Change Weights to prioritize certain stats</div>
       <div>Multiplier is based on pow/def and weighted secondary stats</div>
@@ -35,8 +36,8 @@
 			<div><a href="index.html">More Guides</a></div>
       <div class="br-small"></div>
       <div>Use the sliders and options below to specify</div>
+      <br>
     </div>
-    <br>
     <form onsubmit="return false">
       <datalist>
         <option value="0"></option>
@@ -45,32 +46,43 @@
         <option value="75"></option>
         <option value="100"></option>
       </datalist>
+      <div>
+        <button id="filter-list-button" class="toggle" onclick="toggleIgnoreList(this)">Hide Filters</button>
+        <div id="filter-list">
+          <div>
+            <label for="use-sunken">Use Sunken</label>
+            <input id="use-sunken" name="use-sunken" type="checkbox" checked>
+            <span></span>
+          </div>
+          <div>
+            <label for="use-amulet">Use Amulet</label>
+            <input id="use-amulet" name="use-amulet" type="checkbox" checked>
+            <span></span>
+          </div>
+          <div>
+            <label for="use-secondary">Use Secondary Stats</label>
+            <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary(this)" checked>
+            <span></span>
+          </div>
+          <div>
+            <label for="use-jewels">Use Jewels</label>
+            <input id="use-jewels" name="use-jewels" type="checkbox" checked>
+            <span></span>
+          </div>
+        </div>
+      </div>
+      <br>
       <div class="slider">
         <label for="vit">Vitality</label>
         <input id="vit" oninput="vitChange(this)" name="vit" type="range" min="0" max="250" step="1" value="0">
         <span><input class="input-text" id="vit-text" oninput="vitChange(this)" type="text" value="0"></span>
       </div>
+      <div class="slider">
+        <label for="decimals">Decimal Places</label>
+        <input id="decimals" oninput="decimalsChange(this)" name="decimals" type="range" min="1" max="5" step="1" value="3">
+        <span><input class="input-text" id="decimals-text" oninput="decimalsChange(this)" type="text" value="3"></span>
+      </div>
       <div class="br-small"></div>
-      <div>
-        <label for="use-sunken">Use Sunken</label>
-        <input id="use-sunken" name="use-sunken" type="checkbox" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-amulet">Use Amulet</label>
-        <input id="use-amulet" name="use-amulet" type="checkbox" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-secondary">Use Secondary Stats</label>
-        <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary(this)" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-jewels">Use Jewels</label>
-        <input id="use-jewels" name="use-jewels" type="checkbox" checked>
-        <span></span>
-      </div>
       <!-- <div>
         <label for="log">Log Info</label>
         <input id="log" name="log" type="checkbox" onchange="toggleLog(this)" checked>
