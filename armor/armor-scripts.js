@@ -522,7 +522,7 @@ async function run() {
   modeBonusChange(document.getElementById("mode-bonus"));
 
   log(console.time, "getInfo");
-  await getInfo("infojewels.json");
+  await getInfo("info.json");
   log(console.timeEnd, "getInfo");
 
   // update();
