@@ -8,6 +8,7 @@ const minStats = [0, 0, 0, 0, 0, 0];
 const maxStats = [200, 3000, 400, 400, 400, 400];
 const absMaxStats = [];
 let includeSecondary = true;
+let nonZero = true;
 let logEnabled = true;
 
 function getPowerWeight() {
@@ -222,7 +223,7 @@ class Build {
       <div class="list-element">
         <div>Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
         ${`<div>Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
-        <div>${StatOrder.map(stat => `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
+        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
         <div class="br-small"></div>
         <table>
           <th>Armor</th>
@@ -316,7 +317,7 @@ let enchantMax = 0;
 let jewelMax = 0;
 
 const BUILD_SIZE = 100;
-const ARMOR_SIZE = 200;
+const ARMOR_SIZE = 1000;
 
 // Combinations: [[number]], index: enchant index, arr, remaining: number
 // Should be called only once
@@ -705,6 +706,11 @@ function toggleSecondary(input) {
   for (const element of document.getElementsByClassName("secondary")) {
     element.style.display = includeSecondary ? "" : "none";
   }
+}
+
+function toggleNonZero(input) {
+  nonZero = input.checked;
+  update();
 }
 
 function toggleLog(input) {
