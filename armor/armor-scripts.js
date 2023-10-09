@@ -6,8 +6,6 @@ let decimalPlaces = 3;
 // Unlike python script, these range from [0, 1]
 const weights = [1, 1, .25, .5, .5, .4];
 const minStats = [0, 0, 0, 0, 0, 0];
-const maxStats = [200, 3000, 400, 400, 400, 400];
-const absMaxStats = [];
 let includeSecondary = true;
 let useExotic = true;
 let nonZero = true;
@@ -207,8 +205,6 @@ class Build {
   }
 
   isValid() {
-    if (!this.stats.every((val, i) => val <= maxStats[i]))
-      return false;
     if (!this.useEnchants && !this.useJewels)
       return this.stats.every((val, i) => val >= minStats[i]);
     return getExtraStats(this) >= -.05;
@@ -273,13 +269,13 @@ function getFormattedMultiplierStr(mult) {
 
 // pow/def, vit multiplier without weight
 function getBaseMult(build) {
-  return (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) / BASE_ATTACK;
+  return ((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * getDefenseWeight() + 1) * ((-build.vit / (MAX_LEVEL * 2) * .5 + build.stats[0] / BASE_ATTACK) * getPowerWeight() + 1);
 }
 
 // Returns modified multiplier affected by weight
 function getMult(build) {
   // const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
-  const mult = ((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * getDefenseWeight() + 1) * ((-build.vit / (MAX_LEVEL * 2) * .5 + build.stats[0] / BASE_ATTACK) * getPowerWeight() + 1);
+  const mult = getBaseMult(build);
   if (includeSecondary)
     return mult * otherMult(build);
   return mult;
@@ -370,8 +366,6 @@ async function getInfo(fileName) {
     if (index == Order.indexOf("Enchant"))
       enchantMax = Math.max(enchantMax, normalizeStats(stats));
   }
-  absMaxStats.splice(0, absMaxStats.length);
-  StatOrder.map(statName => BigInt(document.getElementById(`max-${statName}`).max)).forEach(max => absMaxStats.push(max));
 }
 
 // Turn stats into their power equivalent using ratios
@@ -600,7 +594,6 @@ async function run() {
   for (const i in StatOrder) {
     const statName = StatOrder[i];
     minChange(i, document.getElementById(`min-${statName}`));
-    maxChange(i, document.getElementById(`max-${statName}`));
     if (i >= 2)
       weightChange(i, document.getElementById(`weight-${statName}`));
   }
@@ -662,17 +655,6 @@ function minChange(index, input) {
     document.getElementById(`min-${statName}-text`).value = value;
     document.getElementById(`min-${statName}`).value = value;
     minStats[index] = value;
-  }
-}
-
-function maxChange(index, input) {
-  const int = parseInt(input.value);
-  if (!isNaN(int)) {
-    const statName = StatOrder[index];
-    const value = Math.max(parseInt(document.getElementById(`max-${statName}`).min), Math.min(int, parseInt(document.getElementById(`max-${statName}`).max)));
-    document.getElementById(`max-${statName}-text`).value = value;
-    document.getElementById(`max-${statName}`).value = value;
-    maxStats[index] = value;
   }
 }
 
