@@ -47,38 +47,19 @@
         <option value="75"></option>
         <option value="100"></option>
       </datalist>
-      <div>
-        <button id="filter-list-button" class="toggle" onclick="toggleIgnoreList(this)">Hide Filters</button>
-        <div id="filter-list">
-          <div>
-            <label for="use-sunken">Use Sunken</label>
-            <input id="use-sunken" name="use-sunken" type="checkbox" checked>
-            <span></span>
-          </div>
-          <div>
-            <label for="use-amulet">Use Amulet</label>
-            <input id="use-amulet" name="use-amulet" type="checkbox" checked>
-            <span></span>
-          </div>
-          <div>
-            <label for="use-secondary">Use Secondary Stats</label>
-            <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary(this)" checked>
-            <span></span>
-          </div>
-          <div>
-            <label for="use-jewels">Use Jewels</label>
-            <input id="use-jewels" name="use-jewels" type="checkbox" checked>
-            <span></span>
-          </div>
-        </div>
-      </div>
-      <br>
+      <button id="filter-list-button" class="toggle" onclick="toggleIgnoreList(this)">Hide Filters</button>
+      <div class="br-small"></div>
       <div class="slider">
         <label for="vit">Vitality</label>
         <input id="vit" oninput="vitChange(this)" name="vit" type="range" min="0" max="250" step="1" value="0">
         <span><input class="input-text" id="vit-text" oninput="vitChange(this)" type="text" value="0"></span>
       </div>
-      <div class="br-small"></div>
+      <div class="slider">
+        <label for="decimals">Decimal Places</label>
+        <input id="decimals" oninput="decimalsChange(this)" name="decimals" type="range" min="1" max="5" step="1" value="3">
+        <span><input class="input-text" id="decimals-text" oninput="decimalsChange(this)" type="text" value="3"></span>
+      </div>
+      <br>
       <div>
         <label for="only-nonzero">Only Show Non-Zero Stats</label>
         <input id="only-nonzero" name="only-nonzero" type="checkbox" onchange="toggleNonZero(this)" checked>
@@ -104,12 +85,7 @@
         <input id="use-jewels" name="use-jewels" type="checkbox" checked>
         <span></span>
       </div>
-      <div class="slider">
-        <label for="decimals">Decimal Places</label>
-        <input id="decimals" oninput="decimalsChange(this)" name="decimals" type="range" min="1" max="5" step="1" value="3">
-        <span><input class="input-text" id="decimals-text" oninput="decimalsChange(this)" type="text" value="3"></span>
-      </div>
-      <div class="br-small"></div>
+      
       <!-- <div>
         <label for="log">Log Info</label>
         <input id="log" name="log" type="checkbox" onchange="toggleLog(this)" checked>
@@ -200,8 +176,8 @@
         </div>
         <div class="slider secondary">
           <label for="weight-size">Size</label>
-          <input id="weight-size" oninput="weightChange(2, this)" name="weight-size" type="range" min="0" max="200" step="1" value="30">
-          <span><input class="input-text" id="weight-size-text" oninput="weightChange(2, this)" type="text" value="30"></span>
+          <input id="weight-size" oninput="weightChange(2, this)" name="weight-size" type="range" min="0" max="200" step="1" value="25">
+          <span><input class="input-text" id="weight-size-text" oninput="weightChange(2, this)" type="text" value="25"></span>
         </div>
         <div class="slider secondary">
           <label for="weight-intensity">Intensity</label>
@@ -215,13 +191,13 @@
         </div>
         <div class="slider secondary">
           <label for="weight-speed">Speed</label>
-          <input id="weight-speed" oninput="weightChange(4, this)" name="weight-speed" type="range" min="0" max="200" step="1" value="40">
-          <span><input class="input-text" id="weight-speed-text" oninput="weightChange(4, this)" type="text" value="40"></span>
+          <input id="weight-speed" oninput="weightChange(4, this)" name="weight-speed" type="range" min="0" max="200" step="1" value="45">
+          <span><input class="input-text" id="weight-speed-text" oninput="weightChange(4, this)" type="text" value="45"></span>
         </div>
         <div class="slider secondary">
           <label for="weight-agility">Agility</label>
-          <input id="weight-agility" oninput="weightChange(5, this)" name="weight-agility" type="range" min="0" max="200" step="1" value="30">
-          <span><input class="input-text" id="weight-agility-text" oninput="weightChange(5, this)" type="text" value="30"></span>
+          <input id="weight-agility" oninput="weightChange(5, this)" name="weight-agility" type="range" min="0" max="200" step="1" value="40">
+          <span><input class="input-text" id="weight-agility-text" oninput="weightChange(5, this)" type="text" value="40"></span>
         </div>
       </div>
       <br>
