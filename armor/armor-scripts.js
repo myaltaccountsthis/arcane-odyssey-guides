@@ -9,6 +9,7 @@ const minStats = [0, 0, 0, 0, 0, 0];
 const maxStats = [200, 3000, 400, 400, 400, 400];
 const absMaxStats = [];
 let includeSecondary = true;
+let useExotic = true;
 let nonZero = true;
 let logEnabled = true;
 
@@ -234,10 +235,8 @@ class Build {
           }).join("")}
         </table>
         <div class="br-small"></div>
-        <!--<div>Enchants: ${StatOrder.map((statName, i) => `<span class="${statName}">${this.enchants[i]}</span>`).join("/")}</div>-->
-        <!--<div>Jewels: ${Armors[4].map((enchant, i) => `<span class="${enchant}">${this.jewels[i]}</span>`).join("/")}</div>-->
-        <div>Enchants: ${Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ")}</div>
-        <div>Jewels: ${Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ")}</div>
+        <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : StatOrder.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
+        <div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>
       </div>
     `;
   }
@@ -315,9 +314,9 @@ function getExtraStats(build) {
 const Order = ["Amulet", "Accessory", "Boots", "Chestplate", "Enchant", "Helmet", "Jewel"];
 const StatOrder = ["power", "defense", "size", "intensity", "speed", "agility"];
 const Ratio = [1, 9, 3, 3, 3, 3];
-const Armors = [[], [], [], [], [], [], []];
-let enchantMax = 0;
-let jewelMax = 0;
+let Armors;
+let enchantMax;
+let jewelMax;
 
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 1000;
@@ -350,6 +349,9 @@ function calculateCombinations(numTypes, slots, forceLength = 6) {
 
 // Load data from info file into Armors. Must be called before solve()
 async function getInfo(fileName) {
+  Armors = [[], [], [], [], [], [], []];
+  enchantMax = 0;
+  jewelMax = 0;
   const info = await fetch("./armor/" + fileName).then(response => response.json());
   for (const line of info) {
     const words = line.split(" ");
@@ -719,6 +721,14 @@ function toggleSecondary(input) {
   for (const element of document.getElementsByClassName("secondary")) {
     element.style.display = includeSecondary ? "" : "none";
   }
+}
+
+function toggleExotic(input) {
+  useExotic = input.checked;
+  if (useExotic)
+    getInfo("info.json");
+  else
+    getInfo("infoweak.json");
 }
 
 function toggleNonZero(input) {
