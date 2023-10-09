@@ -233,8 +233,9 @@ class Build {
           }).join("")}
         </table>
         <div class="br-small"></div>
-        <div>Enchants: ${StatOrder.map((statName, i) => `<span class="${statName}">${this.enchants[i]}</span>`).join("/")}</div>
+        <!--<div>Enchants: ${StatOrder.map((statName, i) => `<span class="${statName}">${this.enchants[i]}</span>`).join("/")}</div>-->
         <!--<div>Jewels: ${Armors[4].map((enchant, i) => `<span class="${enchant}">${this.jewels[i]}</span>`).join("/")}</div>-->
+        <div>Enchants: ${Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ")}</div>
         <div>Jewels: ${Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ")}</div>
       </div>
     `;
@@ -291,8 +292,8 @@ function otherMult(build) {
 
 // estimate effect of secondary stats (bc non-linear)
 function estimateMultComplex(stat) {
-  // return Math.pow(.0132 * Math.pow(stat, 1.176) + 1, .35) + .0552 * Math.pow(stat, .241) - .059 * Math.log(stat + 1) / Math.log(30);
-  return Math.pow(.01194 * Math.pow(stat, 1.188) + 1, .3415) + .06195 * Math.pow(stat, .2992) - .0893 * Math.log(stat + 1) / Math.log(30);
+  // return Math.pow(.01194 * Math.pow(stat, 1.188) + 1, .3415) + .06195 * Math.pow(stat, .2992) - .0893 * Math.log(stat + 1) / Math.log(30);
+  return 2.02197 * Math.pow(stat + 22.5647, -.22586) + .0316989 * Math.pow(stat, .733205);
 }
 
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
