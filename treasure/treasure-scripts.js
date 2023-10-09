@@ -123,5 +123,5 @@ function toggleInfo(element) {
 function onBodyLoad() {
   update();
   if (window.sessionStorage.getItem("showInfo"))
-    toggleInfo(document.getElementById("visibility_button"));
+    toggleInfo(document.getElementById("visibility-button"));
 }

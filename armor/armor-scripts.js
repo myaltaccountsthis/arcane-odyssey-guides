@@ -2,6 +2,7 @@
 
 // Config
 let MODE_BONUS = .2;
+let decimalPlaces = 3;
 // Unlike python script, these range from [0, 1]
 const weights = [1, 1, .25, .5, .5, .4];
 const minStats = [0, 0, 0, 0, 0, 0];
@@ -267,7 +268,8 @@ function getMultiplierColorStr(mult) {
 }
 
 function getFormattedMultiplierStr(mult) {
-  return `${Math.floor(mult)}.${(Math.floor(mult * 10000) % 10000).toString().padStart(4, "0")}`;
+  const tens = 10 ** decimalPlaces;
+  return `${Math.floor(mult)}.${(Math.floor(mult * tens) % tens).toString().padStart(decimalPlaces, "0")}`;
 }
 
 // pow/def, vit multiplier without weight
@@ -654,7 +656,7 @@ function minChange(index, input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
     const statName = StatOrder[index];
-    const value = Math.max(0, Math.min(int, parseInt(document.getElementById(`min-${statName}`).max)));
+    const value = Math.max(parseInt(document.getElementById(`min-${statName}`).min), Math.min(int, parseInt(document.getElementById(`min-${statName}`).max)));
     document.getElementById(`min-${statName}-text`).value = value;
     document.getElementById(`min-${statName}`).value = value;
     minStats[index] = value;
@@ -665,7 +667,7 @@ function maxChange(index, input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
     const statName = StatOrder[index];
-    const value = Math.max(0, Math.min(int, parseInt(document.getElementById(`max-${statName}`).max)));
+    const value = Math.max(parseInt(document.getElementById(`max-${statName}`).min), Math.min(int, parseInt(document.getElementById(`max-${statName}`).max)));
     document.getElementById(`max-${statName}-text`).value = value;
     document.getElementById(`max-${statName}`).value = value;
     maxStats[index] = value;
@@ -675,9 +677,19 @@ function maxChange(index, input) {
 function vitChange(input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
-    const value = Math.max(0, Math.min(int, parseInt(document.getElementById("vit").max)));
+    const value = Math.max(parseInt(document.getElementById("vit").min), Math.min(int, parseInt(document.getElementById("vit").max)));
     document.getElementById("vit-text").value = value;
     document.getElementById("vit").value = value;
+  }
+}
+
+function decimalsChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("decimals").min), Math.min(int, parseInt(document.getElementById("decimals").max)));
+    document.getElementById("decimals-text").value = value;
+    document.getElementById("decimals").value = value;
+    decimalPlaces = value;
   }
 }
 
@@ -685,7 +697,7 @@ function weightChange(index, input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
     const statName = StatOrder[index];
-    const value = Math.max(0, Math.min(int, parseInt(document.getElementById(`weight-${statName}`).max)));
+    const value = Math.max(parseInt(document.getElementById(`weight-${statName}`).min), Math.min(int, parseInt(document.getElementById(`weight-${statName}`).max)));
     document.getElementById(`weight-${statName}-text`).value = value;
     document.getElementById(`weight-${statName}`).value = value;
     weights[index] = value / 100;
@@ -695,7 +707,7 @@ function weightChange(index, input) {
 function modeBonusChange(input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
-    const value = Math.max(0, Math.min(int, parseInt(document.getElementById("mode-bonus").max)));
+    const value = Math.max(parseInt(document.getElementById("mode-bonus").min), Math.min(int, parseInt(document.getElementById("mode-bonus").max)));
     document.getElementById("mode-bonus-text").value = value;
     document.getElementById("mode-bonus").value = value;
     MODE_BONUS = value / 100;
@@ -716,4 +728,26 @@ function toggleNonZero(input) {
 
 function toggleLog(input) {
   logEnabled = input.checked;
+}
+
+function toggleInfo(element) {
+  const infoElement = document.getElementById("info");
+  infoElement.style.display = infoElement.style.display == "none" ? "" : "none";
+  element.innerText = infoElement.style.display == "" ? "Hide Info" : "Show Info";
+  window.sessionStorage.setItem("showInfo", infoElement.style.display);
+}
+
+function toggleIgnoreList(element) {
+  const ignoreListElement = document.getElementById("filter-list");
+  ignoreListElement.style.display = ignoreListElement.style.display == "none" ? "" : "none";
+  element.innerText = ignoreListElement.style.display == "" ? "Hide Filters" : "Show Filters";
+  window.sessionStorage.setItem("showIgnoreList", ignoreListElement.style.display);
+}
+
+function onBodyLoad() {
+  // update();
+  if (window.sessionStorage.getItem("showInfo"))
+    toggleInfo(document.getElementById("visibility-button"));
+  if (window.sessionStorage.getItem("showIgnoreList"))
+    toggleIgnoreList(document.getElementById("filter-list-button"));
 }
