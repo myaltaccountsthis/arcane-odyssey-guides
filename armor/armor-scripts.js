@@ -280,7 +280,7 @@ function getBaseMult(build) {
 // Returns modified multiplier affected by weight
 function getMult(build) {
   // const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
-  const mult = (BASE_HEALTH + build.vit * HEALTH_PER_VIT + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0]) * (1 - build.vit / (MAX_LEVEL * 2) * .5) * getPowerWeight() / BASE_ATTACK;
+  const mult = ((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * getDefenseWeight() + 1) * ((-build.vit / (MAX_LEVEL * 2) * .5 + build.stats[0] / BASE_ATTACK) * getPowerWeight() + 1);
   if (includeSecondary)
     return mult * otherMult(build);
   return mult;
