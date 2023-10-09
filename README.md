@@ -10,3 +10,4 @@ https://myaltaccountsthis.github.io/arcane-odyssey-guides/
 
 ## Known Issues
 Armor Calculator for secondary stat-based builds may not be fully accurate due to optimizations needed to improve run time.
+Min Stats might overcompensate that stat due to naive algorithm (gonna need to fix), Max Stats is generally inaccurate and might be removed.
