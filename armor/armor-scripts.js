@@ -317,6 +317,8 @@ let jewelMax;
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 1000;
 
+let defaultSettings;
+
 // Combinations: [[number]], index: enchant index, arr, remaining: number
 // Should be called only once
 function calculateCombinationsHelper(combinations, numTypes, index, arr, remaining) {
@@ -598,6 +600,8 @@ async function run() {
       weightChange(i, document.getElementById(`weight-${statName}`));
   }
   modeBonusChange(document.getElementById("mode-bonus"));
+  updateCopyPaste();
+  defaultSettings = getSettings();
 
   log(console.time, "getInfo");
   await getInfo("info.json");
@@ -655,6 +659,7 @@ function minChange(index, input) {
     document.getElementById(`min-${statName}-text`).value = value;
     document.getElementById(`min-${statName}`).value = value;
     minStats[index] = value;
+    updateCopyPaste();
   }
 }
 
@@ -664,6 +669,7 @@ function vitChange(input) {
     const value = Math.max(parseInt(document.getElementById("vit").min), Math.min(int, parseInt(document.getElementById("vit").max)));
     document.getElementById("vit-text").value = value;
     document.getElementById("vit").value = value;
+    updateCopyPaste();
   }
 }
 
@@ -674,6 +680,7 @@ function decimalsChange(input) {
     document.getElementById("decimals-text").value = value;
     document.getElementById("decimals").value = value;
     decimalPlaces = value;
+    updateCopyPaste();
   }
 }
 
@@ -685,6 +692,7 @@ function weightChange(index, input) {
     document.getElementById(`weight-${statName}-text`).value = value;
     document.getElementById(`weight-${statName}`).value = value;
     weights[index] = value / 100;
+    updateCopyPaste();
   }
 }
 
@@ -695,15 +703,100 @@ function modeBonusChange(input) {
     document.getElementById("mode-bonus-text").value = value;
     document.getElementById("mode-bonus").value = value;
     MODE_BONUS = value / 100;
+    updateCopyPaste();
   }
 }
+
+// Copy Paste feature
+
+function getSettings() {
+  return {
+    nz: nonZero ? 1 : 0,
+    s: document.getElementById("use-sunken").checked ? 1 : 0,
+    a: document.getElementById("use-amulet").checked ? 1 : 0,
+    se: document.getElementById("use-secondary").checked ? 1 : 0,
+    j: document.getElementById("use-jewels").checked ? 1 : 0,
+    e: useExotic ? 1 : 0,
+    v: parseInt(document.getElementById("vit").value),
+    d: decimalPlaces,
+    min: minStats,
+    w: weights,
+    mb: MODE_BONUS,
+  };
+}
+
+function updateCopyPaste() {
+  const settings = getSettings();
+  document.getElementById("copy-paste").value = Object.keys(settings).map(key => `${key}:${JSON.stringify(settings[key])}`).join(";");
+}
+
+// on settings changed (pasted or modified)
+function pasteSettings(input) {
+  const str = input.value;
+  const settings = JSON.parse(JSON.stringify(defaultSettings));
+  str.split(";").forEach(setting => {
+    try {
+      const [key, value] = setting.split(":");
+      settings[key] = JSON.parse(value);
+    }
+    catch (e) {
+      console.log(`Invalid setting: ${setting}`);
+    }
+  });
+
+  // Set settings
+  document.getElementById("only-nonzero").checked = settings.nz === 1;
+  document.getElementById("use-sunken").checked = settings.s === 1;
+  document.getElementById("use-amulet").checked = settings.a === 1;
+  document.getElementById("use-secondary").checked = settings.se === 1;
+  document.getElementById("use-jewels").checked = settings.j === 1;
+  document.getElementById("use-exotic").checked = settings.e === 1;
+  document.getElementById("vit").value = settings.v;
+  document.getElementById("decimals").value = settings.d;
+  document.getElementById("mode-bonus").value = MODE_BONUS * 100;
+  toggleNonZero(document.getElementById("only-nonzero"));
+  toggleSecondary(document.getElementById("use-secondary"));
+  toggleExotic(document.getElementById("use-exotic"));
+  vitChange(document.getElementById("vit"));
+  decimalsChange(document.getElementById("decimals"));
+  modeBonusChange(document.getElementById("mode-bonus"));
+  for (const i in StatOrder) {
+    const statName = StatOrder[i];
+    document.getElementById(`min-${statName}`).value = settings.min[i];
+    document.getElementById(`weight-${statName}`).value = settings.w[i] * 100;
+    minChange(i, document.getElementById(`min-${statName}`));
+    weightChange(i, document.getElementById(`weight-${statName}`));
+  }
+}
+
+let copyTimeout;
+function copySettings(input) {
+  updateCopyPaste();
+  navigator.clipboard.writeText(document.getElementById("copy-paste").value);
+  input.style = "background-color: lightgreen;";
+  clearTimeout(copyTimeout);
+  copyTimeout = setTimeout(() => input.style = "", 200);
+}
+
+// Settings toggles
+
+function toggleNonZero(input) {
+  nonZero = input.checked;
+  updateCopyPaste();
+}
+
+// no toggle function for sunken
+// no toggle function for amulet
 
 function toggleSecondary(input) {
   includeSecondary = input.checked;
   for (const element of document.getElementsByClassName("secondary")) {
     element.style.display = includeSecondary ? "" : "none";
   }
+  updateCopyPaste();
 }
+
+// no toggle function for jewels
 
 function toggleExotic(input) {
   useExotic = input.checked;
@@ -711,12 +804,11 @@ function toggleExotic(input) {
     getInfo("info.json");
   else
     getInfo("infoweak.json");
+  updateCopyPaste();
 }
 
-function toggleNonZero(input) {
-  nonZero = input.checked;
-  update();
-}
+
+// UI related toggles
 
 function toggleLog(input) {
   logEnabled = input.checked;
@@ -736,6 +828,7 @@ function toggleIgnoreList(element) {
   window.sessionStorage.setItem("showIgnoreList", ignoreListElement.style.display);
 }
 
+// Runs when website loads
 function onBodyLoad() {
   // update();
   if (window.sessionStorage.getItem("showInfo"))

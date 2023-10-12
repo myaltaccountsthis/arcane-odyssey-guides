@@ -49,6 +49,39 @@
       </datalist>
       <button id="filter-list-button" class="toggle" onclick="toggleIgnoreList(this)">Hide Filters</button>
       <div class="br-small"></div>
+      <div id="filter-list">
+        <div>
+          <label for="only-nonzero">Only Show Non-Zero Stats</label>
+          <input id="only-nonzero" name="only-nonzero" type="checkbox" onchange="toggleNonZero(this)" checked>
+          <span></span>
+        </div>
+        <div>
+          <label for="use-sunken">Use Sunken</label>
+          <input id="use-sunken" name="use-sunken" type="checkbox" checked>
+          <span></span>
+        </div>
+        <div>
+          <label for="use-amulet">Use Amulet</label>
+          <input id="use-amulet" name="use-amulet" type="checkbox" checked>
+          <span></span>
+        </div>
+        <div>
+          <label for="use-secondary">Use Secondary Stats</label>
+          <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary(this)" checked>
+          <span></span>
+        </div>
+        <div>
+          <label for="use-jewels">Use Jewels</label>
+          <input id="use-jewels" name="use-jewels" type="checkbox" checked>
+          <span></span>
+        </div>
+        <div>
+          <label for="use-exotic">Use Exotic Enchants/Jewels</label>
+          <input id="use-exotic" name="use-exotic" type="checkbox" onchange="toggleExotic(this)" checked>
+          <span></span>
+        </div>
+        <br>
+      </div>
       <div class="slider">
         <label for="vit">Vitality</label>
         <input id="vit" oninput="vitChange(this)" name="vit" type="range" min="0" max="250" step="1" value="0">
@@ -59,38 +92,6 @@
         <input id="decimals" oninput="decimalsChange(this)" name="decimals" type="range" min="1" max="5" step="1" value="3">
         <span><input class="input-text" id="decimals-text" oninput="decimalsChange(this)" type="text" value="3"></span>
       </div>
-      <br>
-      <div>
-        <label for="only-nonzero">Only Show Non-Zero Stats</label>
-        <input id="only-nonzero" name="only-nonzero" type="checkbox" onchange="toggleNonZero(this)" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-sunken">Use Sunken</label>
-        <input id="use-sunken" name="use-sunken" type="checkbox" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-amulet">Use Amulet</label>
-        <input id="use-amulet" name="use-amulet" type="checkbox" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-secondary">Use Secondary Stats</label>
-        <input id="use-secondary" name="use-secondary" type="checkbox" onchange="toggleSecondary(this)" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-jewels">Use Jewels</label>
-        <input id="use-jewels" name="use-jewels" type="checkbox" checked>
-        <span></span>
-      </div>
-      <div>
-        <label for="use-exotic">Use Exotic Enchants/Jewels</label>
-        <input id="use-exotic" name="use-exotic" type="checkbox" onchange="toggleExotic(this)" checked>
-        <span></span>
-      </div>
-      
       <!-- <div>
         <label for="log">Log Info</label>
         <input id="log" name="log" type="checkbox" onchange="toggleLog(this)" checked>
@@ -169,6 +170,12 @@
             <span><input class="input-text" id="weight-agility-text" oninput="weightChange(5, this)" type="text" value="40"></span>
           </div>
         </div>
+      </div>
+      <br>
+      <div>
+        <div>Copy Paste Settings</div>
+        <input class="input-text" style="width: 40%; min-width: 300px; max-width: 800px; font-family: Consolas, 'Courier New';" id="copy-paste" type="text" value="" onblur="pasteSettings(this)">
+        <input type="button" onclick="copySettings(this)" value="Copy">
       </div>
       <br>
       <input type="button" onclick="update()" value="Update">
