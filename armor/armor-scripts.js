@@ -219,8 +219,9 @@ class Build {
   asHTML() {
     return `
       <div class="list-element">
-        <div>Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
-        ${`<div>Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
+        <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
+        ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
+        <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(getPowerEquivalence(this) / 80)}">${getFormattedMultiplierStr(getPowerEquivalence(this), 2)}</span></div>
         <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
         <div class="br-small"></div>
         <table>
@@ -259,23 +260,23 @@ function getStatCode(stats) {
 }
 
 function getMultiplierColorStr(mult) {
-  return `hsl(${(mult - 1.7) * 120}, 100%, 40%)`;
+  return `hsl(${(mult - 2) * 75}, 100%, 40%)`;
 }
 
-function getFormattedMultiplierStr(mult) {
-  const tens = 10 ** decimalPlaces;
-  return `${Math.floor(mult)}.${(Math.floor(mult * tens) % tens).toString().padStart(decimalPlaces, "0")}`;
+function getFormattedMultiplierStr(mult, decimals = decimalPlaces) {
+  const tens = 10 ** decimals;
+  return `${Math.floor(mult)}.${(Math.floor(mult * tens) % tens).toString().padStart(decimals, "0")}`;
 }
 
 // pow/def, vit multiplier without weight
-function getBaseMult(build) {
-  return ((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * getDefenseWeight() + 1) * ((-build.vit / (MAX_LEVEL * 2) * .5 + build.stats[0] / BASE_ATTACK) * getPowerWeight() + 1);
+function getBaseMult(build, useWeight = false) {
+  return ((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH * (useWeight ? getDefenseWeight() : 1) + 1) * ((-build.vit / (MAX_LEVEL * 2) * .5 + build.stats[0] / BASE_ATTACK) * (useWeight ? getPowerWeight() : 1) + 1);
 }
 
 // Returns modified multiplier affected by weight
 function getMult(build) {
   // const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
-  const mult = getBaseMult(build);
+  const mult = getBaseMult(build, true);
   if (includeSecondary)
     return mult * otherMult(build);
   return mult;
@@ -304,6 +305,11 @@ function getExtraStats(build) {
     statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
   }
   return statsLeft;
+}
+
+// Returns the total number of stats, normalized to power, in the build 
+function getPowerEquivalence(build) {
+  return build.stats.reduce((acc, val, i) => acc + val / Ratio[i], 0) * Ratio[0];
 }
 
 // Solver.py
