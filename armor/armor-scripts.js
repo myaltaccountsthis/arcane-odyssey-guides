@@ -205,7 +205,7 @@ class Build {
   }
 
   isValid() {
-    if (!this.useEnchants && !this.useJewels)
+    if (this.enchants.reduce((val, i) => val + i) == 5 && this.jewels.reduce((val, i) => val + i) == this.jewelSlots)
       return this.stats.every((val, i) => val >= minStats[i]);
     return getExtraStats(this) >= -.05;
   }
