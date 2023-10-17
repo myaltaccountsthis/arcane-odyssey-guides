@@ -163,7 +163,7 @@ class Build {
     // this.statCode = getStatCode(stats);
     this.useEnchants = useEnchants;
     this.useJewels = useJewels;
-    this.multiplier = getMult(this) + getExtraStats(this) / BASE_ATTACK / 2;
+    this.multiplier = getMult(this) + getExtraStats(this) / BASE_ATTACK;
   }
   
   value() {
