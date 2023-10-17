@@ -163,7 +163,7 @@ class Build {
     // this.statCode = getStatCode(stats);
     this.useEnchants = useEnchants;
     this.useJewels = useJewels;
-    this.multiplier = getMult(this) + getExtraStats(this) / BASE_ATTACK;
+    this.multiplier = getMult(this) + (getExtraStats(this) * (1 / BASE_ATTACK + 9 / BASE_HEALTH)) / 2;
   }
   
   value() {
@@ -448,6 +448,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     }
   }
   let builds = purge(armorSet.toList());
+  // console.log(builds[0]);
   purgesArmor++;
   log(console.timeEnd, "solveArmor");
   const enchantSet = new CustomSet();
@@ -491,7 +492,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
         }
         const enchants = armorBuild.enchants.slice();
         enchants[j]++;
-        const build = new Build(armorBuild.armorList, vit, stats, enchants, undefined, false, useJewels);
+        const build = new Build(armorBuild.armorList, vit, stats, enchants, undefined, true, useJewels);
         nEnchant++;
         if (build.isValid()) {
           validEnchant++;
@@ -515,7 +516,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     enchantSet.clear();
     purgesEnchant++;
   }
-
+  // console.log(builds[0]);
   log(console.timeEnd, "solveEnchant");
   const jewelSet = useJewels ? new CustomSet() : enchantSet;
   // Get best builds with jewels if useJewels
@@ -523,7 +524,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     log(console.time, "solveJewels");
     for (let i = 0; i < 10; i++) {
       for (const enchantBuild of builds) {
-        if (enchantBuild.jewelSlots <= i) {
+        if (enchantBuild.jewelSlots < 10 - i) {
           jewelSet.add(enchantBuild);
           continue;
         }
@@ -563,7 +564,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
           }
           const jewels = enchantBuild.jewels.slice();
           jewels[j]++;
-          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels);
+          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels, true, useJewels);
           nJewel++;
           if (build.isValid()) {
             validJewel++;
