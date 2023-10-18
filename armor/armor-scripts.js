@@ -6,6 +6,9 @@ let decimalPlaces = 3;
 // Unlike python script, these range from [0, 1]
 const weights = [1, 1, .25, .5, .5, .4];
 const minStats = [0, 0, 0, 0, 0, 0];
+let insanity = 3;
+let warding = 4;
+let drawback = 0;
 let includeSecondary = true;
 let useExotic = true;
 let nonZero = true;
@@ -392,17 +395,21 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   const armorSet = new CustomSet();
   log(console.time, "solveArmor");
   for (const armor of Armors[3]) {
+    if (drawback >= 1 ^ armor.name.startsWith("Vatrachos"))
+      continue;
     if (!useSunken && armor.name.startsWith("Sunken"))
       continue;
 
     for (const boot of Armors[2]) {
+      if (drawback >= 2 ^ boot.name.startsWith("Vatrachos"))
+        continue;
       if (!useSunken && boot.name.startsWith("Sunken"))
         continue;
 
       for (let i = 0; i < Armors[1].length; i++) {
         const accessory1 = Armors[1][i];
         // Make accessory2 array (helmets)
-        const helmets = Armors[5].filter(helmet => useSunken || !helmet.name.startsWith("Sunken"));
+        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 3 ^ !helmet.name.startsWith("Vatrachos")));
         const length = helmets.length;
         const accessories2 = helmets.concat(Armors[1].slice(i + 1));
 
@@ -549,6 +556,8 @@ function solve(vit, useSunken, useAmulet, useJewels) {
         }
         */
         for (const j in Armors[6]) {
+          if (drawback >= i + 4 ^ j.name == "Painite")
+            continue;
           const jewel = Armors[6][j];
           const stats = enchantBuild.stats.slice();
           for (const k of jewel.nonZeroStats) {
@@ -686,6 +695,39 @@ function decimalsChange(input) {
     document.getElementById("decimals-text").value = value;
     document.getElementById("decimals").value = value;
     decimalPlaces = value;
+    updateCopyPaste();
+  }
+}
+
+function insanityChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("insanity").min), Math.min(int, parseInt(document.getElementById("insanity").max)));
+    document.getElementById("insanity-text").value = value;
+    document.getElementById("insanity").value = value;
+    insanity = value;
+    updateCopyPaste();
+  }
+}
+
+function wardingChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("warding").min), Math.min(int, parseInt(document.getElementById("warding").max)));
+    document.getElementById("warding-text").value = value;
+    document.getElementById("warding").value = value;
+    warding = value;
+    updateCopyPaste();
+  }
+}
+
+function drawbackChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("drawback").min), Math.min(int, parseInt(document.getElementById("drawback").max)));
+    document.getElementById("drawback-text").value = value;
+    document.getElementById("drawback").value = value;
+    drawback = value;
     updateCopyPaste();
   }
 }
