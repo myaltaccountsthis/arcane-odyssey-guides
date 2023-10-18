@@ -525,7 +525,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     log(console.time, "solveJewels");
     for (let i = 0; i < 10; i++) {
       for (const enchantBuild of builds) {
-        if (enchantBuild.jewelSlots <= i)
+        if (enchantBuild.jewelSlots >=  - i)
           continue;
         /*
         const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
