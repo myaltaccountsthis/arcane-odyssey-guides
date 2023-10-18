@@ -492,7 +492,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
         }
         const enchants = armorBuild.enchants.slice();
         enchants[j]++;
-        const build = new Build(armorBuild.armorList, vit, stats, enchants, undefined, false, useJewels);
+        const build = new Build(armorBuild.armorList, vit, stats, enchants, undefined, true, useJewels);
         nEnchant++;
         if (build.isValid()) {
           validEnchant++;
@@ -525,8 +525,10 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     log(console.time, "solveJewels");
     for (let i = 0; i < 10; i++) {
       for (const enchantBuild of builds) {
-        if (enchantBuild.jewelSlots >=  - i)
+        if (enchantBuild.jewelSlots < 10 - i) {
+          jewelSet.add(enchantBuild);
           continue;
+        }
         /*
         const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
         for (const jewels of jewelCombinations) {
@@ -587,7 +589,6 @@ function solve(vit, useSunken, useAmulet, useJewels) {
       }
       builds = purge(jewelSet.toList());
       jewelSet.clear();
-      jewelSet.addAll(builds);
       purgesJewel++;
     }
     log(console.timeEnd, "solveJewels");
