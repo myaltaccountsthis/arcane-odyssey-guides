@@ -8,6 +8,7 @@
   "Amulet Cernyx_Amulet 0 202 0 0 18 0 0",
   "Helmet Sunken_Helmet 0 153 26 0 0 0 2",
   "Helmet Argos_Helmet 0 142 0 24 0 0 2",
+  "Helmet Vatrachos_Helmet 28 0 72 0 0 0 2",
   "Accessory Cernyx_Faulds 0 142 0 0 18 0 2",
   "Accessory King_Mantello 15 0 13 0 0 13 2",
   "Accessory King_Crown 15 0 13 0 0 13 2",
@@ -24,12 +25,14 @@
   "Chestplate King_Chestplate 21 0 18 0 0 18 2",
   "Chestplate Carina_Chestplate 21 0 0 0 24 0 2",
   "Chestplate Elius_Chestplate 21 0 0 0 0 24 2",
+  "Chestplate Vatrachos_Chestplate 37 97 0 0 0 0 2",
   "Boots Sunken_Boots 0 153 26 0 0 0 2",
   "Boots Argos_Boots 0 142 0 24 0 0 2",
   "Boots Cernyx_Boots 0 142 0 0 18 0 2",
   "Boots King_Boots 15 0 13 0 0 13 2",
   "Boots Carina_Boots 15 0 0 0 18 0 2",
   "Boots Elius_Boots 15 0 0 0 0 18 2",
+  "Boots Vatrachos_Boots 28 72 0 0 0 0 2",
   "Enchant Explosive 0 0 36 0 0 0",
   "Enchant Enhanced 0 0 0 36 0 0",
   "Enchant Brisk 0 0 0 0 36 0",
@@ -38,6 +41,7 @@
   "Enchant Agile 0 0 0 0 0 36",
   "Enchant Charged 7 0 0 18 0 0",
   "Enchant Hasty 0 0 0 0 18 18",
+  "Enchant Virtuous 0 54 0 0 0 0",
   "Jewel Lapis 0 0 0 0 9 9",
   "Jewel Larimar 0 0 0 9 9 0",
   "Jewel Agate 0 27 9 0 0 0",
@@ -45,5 +49,6 @@
   "Jewel Candeleria 3 0 0 0 9 0",
   "Jewel Morenci 3 0 0 0 0 9",
   "Jewel Kyanite 0 0 0 9 0 9",
-  "Jewel Variscite 0 0 9 0 0 9"
+  "Jewel Variscite 0 0 9 0 0 9",
+  "Jewel Painite 0 125 0 0 0 0"
 ]
