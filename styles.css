@@ -80,7 +80,7 @@ table {
   color: rgb(21, 193, 21);
 }
 .intensity {
-  color: rgb(197, 192, 52);
+  color: rgb(206, 204, 149);
 }
 .speed {
   color: rgb(39, 115, 209);
@@ -88,6 +88,16 @@ table {
 .agility {
   color: rgb(43, 199, 213);
 }
+.insanity {
+  color: rgb(174, 0, 255);
+}
+.warding {
+  color: rgb(189, 189, 98);
+}
+.drawback {
+  color: rgb(185, 52, 52);
+}
+
 /* Armor Classes */
 .argos {
   color: rgb(229, 166, 30);

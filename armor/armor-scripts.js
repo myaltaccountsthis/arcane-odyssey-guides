@@ -231,7 +231,11 @@ class Build {
         <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
         ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
         <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(getPowerEquivalence(this) / 80)}">${getFormattedMultiplierStr(getPowerEquivalence(this), 2)}</span></div>
-        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
+        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}
+        <span class="insanity">${insanity}</span><img class="icon" src="./armor/insanity_icon.png">
+        <span class="warding">${warding}</span><img class="icon" src="./armor/warding_icon.png">
+        <span class="drawback">${drawback}</span><img class="icon" src="./armor/drawback_icon.png">
+        </div>
         <div class="br-small"></div>
         <table>
           <th>Armor</th>
