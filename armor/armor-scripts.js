@@ -164,9 +164,9 @@ class Build {
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
-    this.multiplier = getMult(this) * (1 + .005 * getExtraStats(this));
     this.useEnchants = useEnchants;
     this.useJewels = useJewels;
+    this.multiplier = getMult(this) + (getExtraStats(this) * (1 / BASE_ATTACK + 9 / BASE_HEALTH)) / 2;
   }
   
   value() {
@@ -206,9 +206,15 @@ class Build {
   agility() {
     return this.stats[5];
   }
+  numEnchants() {
+    return this.enchants.reduce((num, i) => num + i);
+  }
+  numJewels() {
+    return this.jewels.reduce((num, i) => num + i);
+  }
 
   isValid() {
-    if (this.enchants.reduce((val, i) => val + i) == 5 && this.jewels.reduce((val, i) => val + i) == this.jewelSlots)
+    if (this.numEnchants() == 5 && this.numJewels() == this.jewelSlots)
       return this.stats.every((val, i) => val >= minStats[i]);
     return getExtraStats(this) >= -.05;
   }
@@ -301,9 +307,9 @@ function estimateMultComplex(stat) {
 function getExtraStats(build) {
   let statsLeft = 0;
   if (build.useEnchants)
-    statsLeft += 5 * enchantMax;
+    statsLeft += (5 - build.numEnchants()) * enchantMax;
   if (build.useJewels)
-    statsLeft += build.jewelSlots * jewelMax;
+    statsLeft += (build.jewelSlots - build.numJewels()) * jewelMax;
   for (const i in build.stats) {
     statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
   }
@@ -381,7 +387,7 @@ async function getInfo(fileName) {
 
 // Turn stats into their power equivalent using ratios
 function normalizeStats(stats) {
-  return stats.map((val, i) => val * Ratio[i]).reduce((acc, val) => acc + val, 0);
+  return stats.map((val, i) => val / Ratio[i]).reduce((acc, val) => acc + val, 0);
 }
 
 // The main function. Returns an array of the top 100 builds
@@ -449,6 +455,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     }
   }
   let builds = purge(armorSet.toList());
+  // console.log(builds[0]);
   purgesArmor++;
   log(console.timeEnd, "solveArmor");
   const enchantSet = new CustomSet();
@@ -514,10 +521,9 @@ function solve(vit, useSunken, useAmulet, useJewels) {
     }
     builds = purge(enchantSet.toList());
     enchantSet.clear();
-    enchantSet.addAll(builds);
     purgesEnchant++;
   }
-  
+  // console.log(builds[0]);
   log(console.timeEnd, "solveEnchant");
   const jewelSet = useJewels ? new CustomSet() : enchantSet;
   // Get best builds with jewels if useJewels
@@ -567,7 +573,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
           }
           const jewels = enchantBuild.jewels.slice();
           jewels[j]++;
-          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels);
+          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels, true, useJewels);
           nJewel++;
           if (build.isValid()) {
             validJewel++;
@@ -591,9 +597,9 @@ function solve(vit, useSunken, useAmulet, useJewels) {
       jewelSet.clear();
       purgesJewel++;
     }
-    log(console.timeEnd, "solveJewels");
   }
-  
+  log(console.timeEnd, "solveJewels");
+
   log(console.log, `${armorSet.size} builds after armor, ${enchantSet.size} builds after enchant, ${jewelSet.size} builds after jewel, ${calls} equals calls`);
   log(console.log, `${nArmor} armor, ${validArmor} valid, ${dupesArmor} armor dupes, ${purgesArmor} armor purges`);
   log(console.log, `${nEnchant} enchant, ${validEnchant} valid, ${dupesEnchant} enchant dupes, ${purgesEnchant} enchant purges`);
