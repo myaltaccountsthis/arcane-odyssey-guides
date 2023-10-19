@@ -432,6 +432,7 @@ function solve(vit, useSunken, useAmulet, useJewels) {
               for (const k of item.nonZeroStats)
                 armorStats[k] += item.stats[k];
             }
+            armorStats[0] += 12 * insanity;
             const build = new Build(armorList, vit, armorStats, undefined, undefined, true, useJewels);
             nArmor++;
             if (build.isValid()) {
@@ -493,6 +494,8 @@ function solve(vit, useSunken, useAmulet, useJewels) {
       */
       for (const j in Armors[4]) {
         const enchant = Armors[4][j];
+        if (i < warding && enchant.name != "Virtuous")
+          continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
           stats[k] += enchant.stats[k];
@@ -564,9 +567,9 @@ function solve(vit, useSunken, useAmulet, useJewels) {
         }
         */
         for (const j in Armors[6]) {
-          if (drawback >= i + 4 ^ j.name == "Painite")
-            continue;
           const jewel = Armors[6][j];
+          if (drawback >= 13 - i ^ jewel.name == "Painite")
+            continue;
           const stats = enchantBuild.stats.slice();
           for (const k of jewel.nonZeroStats) {
             stats[k] += jewel.stats[k];
