@@ -317,7 +317,7 @@ function getExtraStats(build) {
   if (useJewels)
     statsLeft += (build.jewelSlots - build.numJewels()) * jewelMax;
   for (const i in build.stats) {
-    statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
+    statsLeft -= includeSecondary || i < 2 ? Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i] : 0;
   }
   return statsLeft;
 }
@@ -784,6 +784,9 @@ function getSettings() {
     e: useExotic ? 1 : 0,
     v: parseInt(document.getElementById("vit").value),
     d: decimalPlaces,
+    i: insanity,
+    wa: warding,
+    dr: drawback,
     min: minStats,
     w: weights,
     mb: MODE_BONUS,
@@ -857,6 +860,14 @@ function toggleSecondary(input) {
   includeSecondary = input.checked;
   for (const element of document.getElementsByClassName("secondary")) {
     element.style.display = includeSecondary ? "" : "none";
+  }
+  if (!includeSecondary) {
+    for (let i = 2; i < StatOrder.length; i++) {
+      const statName = StatOrder[i];
+      document.getElementById(`min-${statName}-text`).value = 0;
+      document.getElementById(`min-${statName}`).value = 0;
+      minStats[i] = 0;
+    }
   }
   updateCopyPaste();
 }
