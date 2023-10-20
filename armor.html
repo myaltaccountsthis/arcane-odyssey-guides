@@ -93,6 +93,22 @@
         <input id="decimals" oninput="decimalsChange(this)" name="decimals" type="range" min="1" max="5" step="1" value="3">
         <span><input class="input-text" id="decimals-text" oninput="decimalsChange(this)" type="text" value="3"></span>
       </div>
+      <div class="slider">
+        <label for="insanity">Insanity</label>
+        <input id="insanity" oninput="insanityChange(this)" name="insanity" type="range" min="0" max="5" step="1" value="3">
+        <span><input class="input-text" id="insanity-text" oninput="insanityChange(this)" type="text" value="3"></span>
+      </div>
+      <div class="slider">
+        <label for="warding">Warding</label>
+        <input id="warding" oninput="wardingChange(this)" name="warding" type="range" min="0" max="5" step="1" value="4">
+        <span><input class="input-text" id="warding-text" oninput="wardingChange(this)" type="text" value="4"></span>
+      </div>
+      <div class="slider">
+        <label for="drawback">Max Drawback</label>
+        <input id="drawback" oninput="drawbackChange(this)" name="drawback" type="range" min="0" max="15" step="1" value="0">
+        <span><input class="input-text" id="drawback-text" oninput="drawbackChange(this)" type="text" value="0"></span>
+      </div>
+      
       <!-- <div>
         <label for="log">Log Info</label>
         <input id="log" name="log" type="checkbox" onchange="toggleLog(this)" checked>
@@ -132,8 +148,9 @@
             <span><input class="input-text" id="min-agility-text" oninput="minChange(5, this)" type="text" value="0"></span>
           </div>
         </div>
-        <br>
-        <div class="big">Weights</div>
+      </div>
+      <br>
+      <div class="big">Weights</div>
         <div>
           <div class="slider">
             <label for="weight-power">Power</label>

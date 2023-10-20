@@ -4,9 +4,16 @@
 let MODE_BONUS = .2;
 let decimalPlaces = 3;
 // Unlike python script, these range from [0, 1]
-const weights = [1, 1, .25, .5, .5, .4];
-const minStats = [0, 0, 0, 0, 0, 0];
+const weights = [1, 1, .25, .5, .5, .4, 0, 0, 0];
+const minStats = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+let vit = 0;
+let insanity = 3;
+let warding = 4;
+let drawback = 0;
 let includeSecondary = true;
+let useSunken = true;
+let useAmulet = true;
+let useJewels = true;
 let useExotic = true;
 let nonZero = true;
 let logEnabled = true;
@@ -152,7 +159,7 @@ Armor.prototype.toString = function() {
 }
 
 class Build {
-  constructor(armorList = [], vit = 0, stats = [0, 0, 0, 0, 0, 0], enchants = Array(Armors[4].length).fill(0), jewels = Array(Armors[6].length).fill(0), useEnchants = false, useJewels = false) {
+  constructor(armorList = [], vit = 0, stats = [0, 0, 0, 0, 0, 0, 0, 0, 0], enchants = Array(Armors[4].length).fill(0), jewels = Array(Armors[6].length).fill(0)) {
     this.stats = stats
     this.armorList = armorList;
     this.vit = vit;
@@ -161,8 +168,6 @@ class Build {
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
-    this.useEnchants = useEnchants;
-    this.useJewels = useJewels;
     this.multiplier = getMult(this) + (getExtraStats(this) * (1 / BASE_ATTACK + 9 / BASE_HEALTH)) / 2;
   }
   
@@ -228,7 +233,11 @@ class Build {
         <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
         ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
         <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(getPowerEquivalence(this) / 80)}">${getFormattedMultiplierStr(getPowerEquivalence(this), 2)}</span></div>
-        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
+        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}
+        ${!nonZero || this.stats[6] > 0 ? `<span class="insanity">${this.stats[6]}</span><img class="icon" src=./armor/insanity_icon.png>` : ""}
+        ${!nonZero || this.stats[7] > 0 ? `<span class="warding">${this.stats[7]}</span><img class="icon" src="./armor/warding_icon.png">` : ""}
+        ${!nonZero || this.stats[8] > 0 ? `<span class="drawback">${this.stats[8]}</span><img class="icon" src="./armor/drawback_icon.png">` : ""}
+        </div>
         <div class="br-small"></div>
         <table>
           <th>Armor</th>
@@ -240,6 +249,7 @@ class Build {
         <div class="br-small"></div>
         <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : StatOrder.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
         <div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>
+        ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
       </div>
     `;
   }
@@ -303,9 +313,8 @@ function estimateMultComplex(stat) {
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
 function getExtraStats(build) {
   let statsLeft = 0;
-  if (build.useEnchants)
-    statsLeft += (5 - build.numEnchants()) * enchantMax;
-  if (build.useJewels)
+  statsLeft += (5 - build.numEnchants()) * enchantMax;
+  if (useJewels)
     statsLeft += (build.jewelSlots - build.numJewels()) * jewelMax;
   for (const i in build.stats) {
     statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
@@ -321,7 +330,7 @@ function getPowerEquivalence(build) {
 // Solver.py
 const Order = ["Amulet", "Accessory", "Boots", "Chestplate", "Enchant", "Helmet", "Jewel"];
 const StatOrder = ["power", "defense", "size", "intensity", "speed", "agility"];
-const Ratio = [1, 9, 3, 3, 3, 3];
+const Ratio = [1, 9, 3, 3, 3, 3, 1, 1, 1];
 let Armors;
 let enchantMax;
 let jewelMax;
@@ -368,10 +377,10 @@ async function getInfo(fileName) {
     const category = words[0];
     const name = words[1];
     const stats = [];
-    for (let i = 2; i < 8; i++) {
+    for (let i = 2; i < 11; i++) {
       stats.push(parseInt(words[i]));
     }
-    const jewels = words.length > 8 ? parseInt(words[8]) : 0;
+    const jewels = words.length > 11 ? parseInt(words[11]) : 0;
     const armor = new Armor(name, stats, jewels);
     const index = Order.indexOf(category);
     Armors[index].push(armor);
@@ -388,7 +397,7 @@ function normalizeStats(stats) {
 }
 
 // The main function. Returns an array of the top 100 builds
-function solve(vit, useSunken, useAmulet, useJewels) {
+function solve() {
   // tracking vars
   let validArmor = 0, actualArmor = 0, nArmor = 0, dupesArmor = 0, purgesArmor = 0;
   let validEnchant = 0, actualEnchant = 0, nEnchant = 0, dupesEnchant = 0, purgesEnchant = 0;
@@ -398,17 +407,21 @@ function solve(vit, useSunken, useAmulet, useJewels) {
   const armorSet = new CustomSet();
   log(console.time, "solveArmor");
   for (const armor of Armors[3]) {
+    if (drawback < 1 && armor.name.startsWith("Vatrachos"))
+      continue;
     if (!useSunken && armor.name.startsWith("Sunken"))
       continue;
 
     for (const boot of Armors[2]) {
+      if (drawback < 2 && boot.name.startsWith("Vatrachos"))
+        continue;
       if (!useSunken && boot.name.startsWith("Sunken"))
         continue;
 
       for (let i = 0; i < Armors[1].length; i++) {
         const accessory1 = Armors[1][i];
         // Make accessory2 array (helmets)
-        const helmets = Armors[5].filter(helmet => useSunken || !helmet.name.startsWith("Sunken"));
+        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 3 || !helmet.name.startsWith("Vatrachos")));
         const length = helmets.length;
         const accessories2 = helmets.concat(Armors[1].slice(i + 1));
 
@@ -420,12 +433,14 @@ function solve(vit, useSunken, useAmulet, useJewels) {
 
           for (const accessory3 of accessories3) {
             const armorList = [armor, boot, accessory1, accessory2, accessory3];
-            const armorStats = [0, 0, 0, 0, 0, 0];
+            const armorStats = [0, 0, 0, 0, 0, 0, 0, 0, 0];
             for (const item of armorList) {
               for (const k of item.nonZeroStats)
                 armorStats[k] += item.stats[k];
             }
-            const build = new Build(armorList, vit, armorStats, undefined, undefined, true, useJewels);
+            armorStats[0] += 12 * insanity;
+            armorStats[6] = insanity;
+            const build = new Build(armorList, vit, armorStats);
             nArmor++;
             if (build.isValid()) {
               validArmor++;
@@ -486,13 +501,15 @@ function solve(vit, useSunken, useAmulet, useJewels) {
       */
       for (const j in Armors[4]) {
         const enchant = Armors[4][j];
+        if (i < warding && enchant.name != "Virtuous")
+          continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
           stats[k] += enchant.stats[k];
         }
         const enchants = armorBuild.enchants.slice();
         enchants[j]++;
-        const build = new Build(armorBuild.armorList, vit, stats, enchants, undefined, true, useJewels);
+        const build = new Build(armorBuild.armorList, vit, stats, enchants);
         nEnchant++;
         if (build.isValid()) {
           validEnchant++;
@@ -558,13 +575,15 @@ function solve(vit, useSunken, useAmulet, useJewels) {
         */
         for (const j in Armors[6]) {
           const jewel = Armors[6][j];
+          if (drawback < 13 - i && jewel.name == "Painite")
+            continue;
           const stats = enchantBuild.stats.slice();
           for (const k of jewel.nonZeroStats) {
             stats[k] += jewel.stats[k];
           }
           const jewels = enchantBuild.jewels.slice();
           jewels[j]++;
-          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels, true, useJewels);
+          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, jewels);
           nJewel++;
           if (build.isValid()) {
             validJewel++;
@@ -625,10 +644,9 @@ async function run() {
 
 // Update the list of builds (takes a long time to run)
 async function update() {
-  const vit = parseInt(document.getElementById("vit").value);
-  const useSunken = document.getElementById("use-sunken").checked;
-  const useAmulet = document.getElementById("use-amulet").checked;
-  const useJewels = document.getElementById("use-jewels").checked;
+  useSunken = document.getElementById("use-sunken").checked;
+  useAmulet = document.getElementById("use-amulet").checked;
+  useJewels = document.getElementById("use-jewels").checked;
   const armorList = document.getElementById("armor-list");
 
   armorList.innerHTML = "<div>Loading...</div>";
@@ -637,7 +655,7 @@ async function update() {
     log(console.log, "-".repeat(10));
     log(console.time, "updateTotal");
     log(console.time, "solve");
-    const builds = solve(vit, useSunken, useAmulet, useJewels).slice(0, 100);
+    const builds = solve();
     log(console.timeEnd, "solve");
     log(console.time, "updateHTML");
     if (builds.length === 0) {
@@ -682,6 +700,7 @@ function vitChange(input) {
     const value = Math.max(parseInt(document.getElementById("vit").min), Math.min(int, parseInt(document.getElementById("vit").max)));
     document.getElementById("vit-text").value = value;
     document.getElementById("vit").value = value;
+    vit = value;
     updateCopyPaste();
   }
 }
@@ -693,6 +712,39 @@ function decimalsChange(input) {
     document.getElementById("decimals-text").value = value;
     document.getElementById("decimals").value = value;
     decimalPlaces = value;
+    updateCopyPaste();
+  }
+}
+
+function insanityChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("insanity").min), Math.min(int, parseInt(document.getElementById("insanity").max)));
+    document.getElementById("insanity-text").value = value;
+    document.getElementById("insanity").value = value;
+    insanity = value;
+    updateCopyPaste();
+  }
+}
+
+function wardingChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("warding").min), Math.min(int, parseInt(document.getElementById("warding").max)));
+    document.getElementById("warding-text").value = value;
+    document.getElementById("warding").value = value;
+    warding = value;
+    updateCopyPaste();
+  }
+}
+
+function drawbackChange(input) {
+  const int = parseInt(input.value);
+  if (!isNaN(int)) {
+    const value = Math.max(parseInt(document.getElementById("drawback").min), Math.min(int, parseInt(document.getElementById("drawback").max)));
+    document.getElementById("drawback-text").value = value;
+    document.getElementById("drawback").value = value;
+    drawback = value;
     updateCopyPaste();
   }
 }
