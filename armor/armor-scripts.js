@@ -168,7 +168,7 @@ class Build {
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
-    this.multiplier = getMult(this) + (getExtraStats(this) * (1 / BASE_ATTACK + 9 / BASE_HEALTH)) / 2;
+    this.multiplier = getMult(this);
   }
   
   value() {
@@ -248,7 +248,7 @@ class Build {
         </table>
         <div class="br-small"></div>
         <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : StatOrder.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
-        ${useJewels ? `<div>${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>` : ""}
+        ${useJewels ? `<div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>` : ""}
         ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
       </div>
     `;
@@ -319,7 +319,7 @@ function getExtraStats(build) {
 
   const painites = Math.min(drawback - build.stats[8], jewelsLeft);
   if (useJewels)
-    statsLeft += painites * 125 / Ratio[1] + (jewelMax - painites) * jewelMax;
+    statsLeft += painites * 125 / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   
   for (const i in build.stats) {
     if (!includeSecondary && i >= 2)
@@ -437,7 +437,7 @@ function solve() {
       continue;
 
     for (const boot of Armors[2]) {
-      if (drawback < 2 && boot.name.startsWith("Vatrachos"))
+      if (drawback < 1 && boot.name.startsWith("Vatrachos"))
         continue;
       if (!useSunken && boot.name.startsWith("Sunken"))
         continue;
@@ -445,7 +445,7 @@ function solve() {
       for (let i = 0; i < Armors[1].length; i++) {
         const accessory1 = Armors[1][i];
         // Make accessory2 array (helmets)
-        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 3 || !helmet.name.startsWith("Vatrachos")));
+        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 1 || !helmet.name.startsWith("Vatrachos")));
         const length = helmets.length;
         const accessories2 = helmets.concat(Armors[1].slice(i + 1));
 
@@ -462,6 +462,8 @@ function solve() {
               for (const k of item.nonZeroStats)
                 armorStats[k] += item.stats[k];
             }
+            if (armorStats[8] > drawback)
+              continue;
             armorStats[0] += 12 * insanity;
             armorStats[6] = insanity;
             const build = new Build(armorList, vit, armorStats);
@@ -599,7 +601,7 @@ function solve() {
         */
         for (const j in Armors[6]) {
           const jewel = Armors[6][j];
-          if (drawback < 13 - i && jewel.name == "Painite")
+          if (drawback - enchantBuild.stats[8] < 10 - i && jewel.name == "Painite")
             continue;
           const stats = enchantBuild.stats.slice();
           for (const k of jewel.nonZeroStats) {
@@ -628,6 +630,7 @@ function solve() {
         }
       }
       builds = purge(jewelSet.toList());
+      console.log(i + " " + getExtraStats(builds[0]));
       jewelSet.clear();
       purgesJewel++;
     }
