@@ -316,13 +316,17 @@ function getExtraStats(build) {
   const enchantsLeft = 5 - build.numEnchants();
   const jewelsLeft = build.jewelSlots - build.numJewels();
   statsLeft += enchantsLeft * enchantMax;
+
+  const painites = Math.min(drawback - build.stats[8], jewelsLeft);
   if (useJewels)
-    statsLeft += jewelsLeft * jewelMax;
+    statsLeft += painites * 125 / Ratio[1] + (jewelMax - painites) * jewelMax;
+  
   for (const i in build.stats) {
     if (!includeSecondary && i >= 2)
       continue;
     if (i == 1 && drawback > 0) {
-      if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + Math.min(drawback - build.stats[8], jewelsLeft) * 125 + (jewelsLeft - Math.min(drawback - build.stats[8], jewelsLeft)) * jewelMaxStats[i])
+      
+      if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + painites * 125 + (jewelsLeft - painites) * jewelMaxStats[i])
         return -1;
     }
     else if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + jewelsLeft * jewelMaxStats[i])
