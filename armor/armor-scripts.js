@@ -248,7 +248,7 @@ class Build {
         </table>
         <div class="br-small"></div>
         <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : StatOrder.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
-        <div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>
+        ${useJewels ? `<div>${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>` : ""}
         ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
       </div>
     `;
