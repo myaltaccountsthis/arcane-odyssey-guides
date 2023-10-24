@@ -313,11 +313,17 @@ function estimateMultComplex(stat) {
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
 function getExtraStats(build) {
   let statsLeft = 0;
-  statsLeft += (5 - build.numEnchants()) * enchantMax;
+  const enchantsLeft = 5 - build.numEnchants();
+  const jewelsLeft = build.jewelSlots - build.numJewels();
+  statsLeft += enchantsLeft * enchantMax;
   if (useJewels)
-    statsLeft += (build.jewelSlots - build.numJewels()) * jewelMax;
+    statsLeft += jewelsLeft * jewelMax;
   for (const i in build.stats) {
-    statsLeft -= includeSecondary || i < 2 ? Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i] : 0;
+    if (!includeSecondary && i >= 2)
+      continue;
+    if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + jewelsLeft * jewelMaxStats[i])
+      return -1;
+    statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
   }
   return statsLeft;
 }
@@ -334,6 +340,8 @@ const Ratio = [1, 9, 3, 3, 3, 3, 1, 1, 1];
 let Armors;
 let enchantMax;
 let jewelMax;
+const enchantMaxStats = [0, 0, 0, 0, 0, 0];
+const jewelMaxStats = [0, 0, 0, 0, 0, 0];
 
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 1000;
@@ -384,10 +392,18 @@ async function getInfo(fileName) {
     const armor = new Armor(name, stats, jewels);
     const index = Order.indexOf(category);
     Armors[index].push(armor);
-    if (index == Order.indexOf("Jewel"))
+    if (stats[8] > 0)
+      continue;
+    if (index == Order.indexOf("Jewel")) {
       jewelMax = Math.max(jewelMax, normalizeStats(stats));
-    if (index == Order.indexOf("Enchant"))
+      for (let i = 0; i < 6; i++)
+        jewelMaxStats[i] = Math.max(jewelMaxStats[i], stats[i]);
+    }
+    if (index == Order.indexOf("Enchant")) {
       enchantMax = Math.max(enchantMax, normalizeStats(stats));
+      for (let i = 0; i < 6; i++)
+        enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
+    }
   }
 }
 
@@ -533,7 +549,7 @@ function solve() {
     enchantSet.clear();
     purgesEnchant++;
   }
-  // console.log(builds[0]);
+  console.log(builds[0]);
   log(console.timeEnd, "solveEnchant");
   const jewelSet = useJewels ? new CustomSet() : enchantSet;
   // Get best builds with jewels if useJewels
@@ -631,6 +647,9 @@ async function run() {
     if (i >= 2)
       weightChange(i, document.getElementById(`weight-${statName}`));
   }
+  insanityChange(document.getElementById("insanity"));
+  wardingChange(document.getElementById("warding"));
+  drawbackChange(document.getElementById("drawback"));
   modeBonusChange(document.getElementById("mode-bonus"));
   updateCopyPaste();
   defaultSettings = getSettings();
@@ -835,6 +854,12 @@ function pasteSettings(input) {
     minChange(i, document.getElementById(`min-${statName}`));
     weightChange(i, document.getElementById(`weight-${statName}`));
   }
+  document.getElementById("insanity").value = settings.i;
+  insanityChange(document.getElementById("insanity"));
+  document.getElementById("warding").value = settings.wa;
+  wardingChange(document.getElementById("warding"));
+  document.getElementById("drawback").value = settings.dr;
+  drawbackChange(document.getElementById("drawback"));
 }
 
 let copyTimeout;
