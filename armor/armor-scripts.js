@@ -630,7 +630,6 @@ function solve() {
         }
       }
       builds = purge(jewelSet.toList());
-      console.log(i + " " + getExtraStats(builds[0]));
       jewelSet.clear();
       purgesJewel++;
     }
