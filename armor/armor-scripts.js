@@ -208,6 +208,16 @@ class Build {
   agility() {
     return this.stats[5];
   }
+  insanity() {
+    return this.stats[6];
+  }
+  warding() {
+    return this.stats[7];
+  }
+  drawback() {
+    return this.stats[8];
+  }
+
   numEnchants() {
     return this.enchants.reduce((num, i) => num + i);
   }
@@ -233,11 +243,7 @@ class Build {
         <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
         ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
         <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(getPowerEquivalence(this) / 80)}">${getFormattedMultiplierStr(getPowerEquivalence(this), 2)}</span></div>
-        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}
-        ${!nonZero || this.stats[6] > 0 ? `<span class="insanity">${this.stats[6]}</span><img class="icon" src=./armor/insanity_icon.png>` : ""}
-        ${!nonZero || this.stats[7] > 0 ? `<span class="warding">${this.stats[7]}</span><img class="icon" src="./armor/warding_icon.png">` : ""}
-        ${!nonZero || this.stats[8] > 0 ? `<span class="drawback">${this.stats[8]}</span><img class="icon" src="./armor/drawback_icon.png">` : ""}
-        </div>
+        <div>${StatOrder.map(stat => nonZero && this[stat]() == 0 ? `` : `<span class="${stat}">${this[stat]()}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
         <div class="br-small"></div>
         <table>
           <th>Armor</th>
@@ -247,8 +253,8 @@ class Build {
           }).join("")}
         </table>
         <div class="br-small"></div>
-        <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : StatOrder.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
-        ${useJewels ? `<div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : StatOrder.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>` : ""}
+        <div>Enchants: ${useExotic ? Armors[4].map((enchant, i) => `${this.enchants[i]} ${enchant.name}`).filter((enchant, i) => this.enchants[i] != 0).join(", ") : MainStats.map((enchant, i) => `<span class="${enchant}">${this.enchants[i]}</span>`).join("/")}</div>
+        ${useJewels ? `<div>Jewels: ${useExotic ? Armors[6].map((jewel, i) => `${this.jewels[i]} ${jewel.name}`).filter((jewel, i) => this.jewels[i] != 0).join(", ") : MainStats.map((jewel, i) => `<span class="${jewel}">${this.jewels[i]}</span>`).join("/")}</div>` : ""}
         ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
       </div>
     `;
@@ -343,7 +349,8 @@ function getPowerEquivalence(build) {
 
 // Solver.py
 const Order = ["Amulet", "Accessory", "Boots", "Chestplate", "Enchant", "Helmet", "Jewel"];
-const StatOrder = ["power", "defense", "size", "intensity", "speed", "agility"];
+const StatOrder = ["power", "defense", "size", "intensity", "speed", "agility", "insanity", "warding", "drawback"];
+const MainStats = ["power", "defense", "size", "intensity", "speed", "agility"];
 const Ratio = [1, 9, 3, 3, 3, 3, 1, 1, 1];
 let Armors;
 let enchantMax;
@@ -392,11 +399,18 @@ async function getInfo(fileName) {
     const words = line.split(" ");
     const category = words[0];
     const name = words[1];
-    const stats = [];
-    for (let i = 2; i < 11; i++) {
-      stats.push(parseInt(words[i]));
+    const stats = new Array(StatOrder.length).fill(0);
+    let jewels = 0;
+    for (let i = 2; i < words.length; i++) {
+      const entry = words[i].split(":");
+      const stat = entry[0];
+      const val = parseInt(entry[1]);
+      if (stat == "jewels") {
+        jewels = val;
+        continue;
+      }
+      stats[StatOrder.indexOf(stat)] = val;
     }
-    const jewels = words.length > 11 ? parseInt(words[11]) : 0;
     const armor = new Armor(name, stats, jewels);
     const index = Order.indexOf(category);
     Armors[index].push(armor);
@@ -651,8 +665,8 @@ function purge(builds, SIZE = ARMOR_SIZE) {
 // Runs once when the website is loaded
 async function run() {
   vitChange(document.getElementById("vit"));
-  for (const i in StatOrder) {
-    const statName = StatOrder[i];
+  for (const i in MainStats) {
+    const statName = MainStats[i];
     minChange(i, document.getElementById(`min-${statName}`));
     if (i >= 2)
       weightChange(i, document.getElementById(`weight-${statName}`));
@@ -714,7 +728,7 @@ function log(func, ...args) {
 function minChange(index, input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
-    const statName = StatOrder[index];
+    const statName = MainStats[index];
     const value = Math.max(parseInt(document.getElementById(`min-${statName}`).min), Math.min(int, parseInt(document.getElementById(`min-${statName}`).max)));
     document.getElementById(`min-${statName}-text`).value = value;
     document.getElementById(`min-${statName}`).value = value;
@@ -781,7 +795,7 @@ function drawbackChange(input) {
 function weightChange(index, input) {
   const int = parseInt(input.value);
   if (!isNaN(int)) {
-    const statName = StatOrder[index];
+    const statName = MainStats[index];
     const value = Math.max(parseInt(document.getElementById(`weight-${statName}`).min), Math.min(int, parseInt(document.getElementById(`weight-${statName}`).max)));
     document.getElementById(`weight-${statName}-text`).value = value;
     document.getElementById(`weight-${statName}`).value = value;
@@ -857,8 +871,8 @@ function pasteSettings(input) {
   vitChange(document.getElementById("vit"));
   decimalsChange(document.getElementById("decimals"));
   modeBonusChange(document.getElementById("mode-bonus"));
-  for (const i in StatOrder) {
-    const statName = StatOrder[i];
+  for (const i in MainStats) {
+    const statName = MainStats[i];
     document.getElementById(`min-${statName}`).value = settings.min[i];
     document.getElementById(`weight-${statName}`).value = settings.w[i] * 100;
     minChange(i, document.getElementById(`min-${statName}`));
@@ -897,8 +911,8 @@ function toggleSecondary(input) {
     element.style.display = includeSecondary ? "" : "none";
   }
   if (!includeSecondary) {
-    for (let i = 2; i < StatOrder.length; i++) {
-      const statName = StatOrder[i];
+    for (let i = 2; i < MainStats.length; i++) {
+      const statName = MainStats[i];
       document.getElementById(`min-${statName}-text`).value = 0;
       document.getElementById(`min-${statName}`).value = 0;
       minStats[i] = 0;
