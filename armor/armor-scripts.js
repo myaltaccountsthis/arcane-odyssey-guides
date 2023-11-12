@@ -158,13 +158,20 @@ Armor.prototype.toString = function() {
   return this.name;
 }
 
+class MainArmor extends Armor {
+  constructor(name, stats, jewelSlots) {
+    super(name, stats, jewelSlots);
+    this.enchant = undefined;
+    this.jewels = [undefined, undefined];
+    this.modifier = undefined;
+  }
+}
+
 class Build {
-  constructor(armorList = [], vit = 0, stats = [0, 0, 0, 0, 0, 0, 0, 0, 0], enchants = Array(Armors[4].length).fill(0), jewels = Array(Armors[6].length).fill(0)) {
+  constructor(armorList = [], vit = 0, stats = [0, 0, 0, 0, 0, 0, 0, 0, 0]) {
     this.stats = stats
     this.armorList = armorList;
     this.vit = vit;
-    this.enchants = enchants;
-    this.jewels = jewels;
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(stats);
     // this.statCode = getStatCode(stats);
@@ -219,10 +226,10 @@ class Build {
   }
 
   numEnchants() {
-    return this.enchants.reduce((num, i) => num + i);
+    return this.armorList.reduce((sum, armor) => sum + (armor.enchant != undefined));
   }
   numJewels() {
-    return this.jewels.reduce((num, i) => num + i);
+    return this.jewels.reduce((sum, armor) => sum + (armor.jewels.filter(jewel => jewel != undefined).length));
   }
 
   isValid() {
@@ -323,16 +330,20 @@ function getExtraStats(build) {
   const jewelsLeft = build.jewelSlots - build.numJewels();
   statsLeft += enchantsLeft * enchantMax;
 
-  const painites = Math.min(drawback - build.stats[8], jewelsLeft);
+  const painites = Math.min(drawback - build.drawback(), jewelsLeft);
+  const virtuous = warding - build.warding();
   if (useJewels)
     statsLeft += painites * 125 / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   
   for (const i in build.stats) {
     if (!includeSecondary && i >= 2)
       continue;
-    if (i == 1 && drawback > 0) {
-      
-      if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + painites * 125 + (jewelsLeft - painites) * jewelMaxStats[i])
+    if (i == 1) {
+      if (drawback > 0) {
+        if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + painites * 125 + (jewelsLeft - painites) * jewelMaxStats[i])
+          return -1;
+      }
+      else if (minStats[i] - build.stats[i] > virtuous * 54 + (enchantsLeft - virtuous) * enchantMaxStats[i] + jewelsLeft * jewelMaxStats[i])
         return -1;
     }
     else if (minStats[i] - build.stats[i] > enchantsLeft * enchantMaxStats[i] + jewelsLeft * jewelMaxStats[i])
@@ -470,7 +481,13 @@ function solve() {
           const accessories3 = (j < length ? accessories2.slice(length) : accessories2.slice(j + 1)).concat(useAmulet ? Armors[0] : []);
 
           for (const accessory3 of accessories3) {
-            const armorList = [armor, boot, accessory1, accessory2, accessory3];
+            const armorList = [
+              new MainArmor(armor.name, armor.stats, armor.jewelSlots), 
+              new MainArmor(boot.name, boot.stats, boot.jewelSlots),
+              new MainArmor(accessory1.name, accessory1.stats, accessory1.jewelSlots),
+              new MainArmor(accessory2.name, accessory2.stats, accessory2.jewelSlots),
+              new MainArmor(accessory3.name, accessory3.stats, accessory3.jewelSlots)
+            ];
             const armorStats = [0, 0, 0, 0, 0, 0, 0, 0, 0];
             for (const item of armorList) {
               for (const k of item.nonZeroStats)
@@ -541,15 +558,14 @@ function solve() {
       */
       for (const j in Armors[4]) {
         const enchant = Armors[4][j];
-        if (i < warding && enchant.name != "Virtuous")
+        if (armorBuild.warding() == warding && enchant.name == "Virtuous")
           continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
           stats[k] += enchant.stats[k];
         }
-        const enchants = armorBuild.enchants.slice();
-        enchants[j]++;
-        const build = new Build(armorBuild.armorList, vit, stats, enchants);
+        armorBuild.armorList[i].enchant = enchant;
+        const build = new Build(armorBuild.armorList, vit, stats);
         nEnchant++;
         if (build.isValid()) {
           validEnchant++;
