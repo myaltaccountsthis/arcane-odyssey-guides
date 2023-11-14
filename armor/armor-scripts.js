@@ -319,13 +319,11 @@ class Build {
           <th>Armor</th>
           ${this.armorList.map(armor => {
             const armorName = armor.toString().replaceAll("_", " ");
-            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier : ""} ${armorName}</td></tr>`;
+            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier + " " : ""}${armor.enchant} ${armorName}</td></tr>`;
           }).join("")}
         </table>
         <div class="br-small"></div>
-        <div>Enchants: ${this.getEnchants().map((val, i) => `${val} ${Armors[4][i].name}`).filter((val, i) => val[0] != "0").join(", ")}</div>
-        <div>Jewels: ${this.getJewels().map((val, i) => `${val} ${Armors[6][i].name}`).filter((val, i) => val[0] != "0").join(", ")}</div>
-        ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
+        <div>Jewels: ${this.armorList.map((armor) => armor.jewels.map((i) => i).join(" ")).join(", ")}</div>
       </div>
     `;
   }
@@ -616,7 +614,7 @@ function solve() {
         modifierSet.add(armorBuild);
       for (const j in Armors[7]) {
         const modifier = Armors[7][j];
-        if (modifier.name == "Atlantean" && armorBuild.insanity >= insanity)
+        if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
           continue;
         if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
           continue;
