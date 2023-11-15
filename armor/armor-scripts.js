@@ -164,15 +164,46 @@ class MainArmor extends Armor {
     this.jewels = jewels;
     this.modifier = modifier;
   }
+
+  getTotalStats() {
+    const stats = this.stats.slice();
+    if (this.enchant != undefined) {
+      for (const i of this.enchant.nonZeroStats)
+        stats[i] += this.enchant.stats[i];
+    }
+    for (const jewel of this.jewels) {
+      if (jewel != undefined) {
+        for (const i of jewel.nonZeroStats)
+          stats[i] += jewel.stats[i];
+      }
+    }
+    if (this.modifier != undefined) {
+      if (this.modifier.name == "Atlantean") {
+        let i = 0;
+        for (; i < 6; i++) {
+          if (stats[i] == 0)
+            break;
+        }
+        i %= 6;
+        stats[i] += this.modifier.stats[i];
+        stats[6] += this.modifier.stats[6];
+      }
+      else {
+        for (const i of this.modifier.nonZeroStats)
+          stats[i] += this.modifier.stats[i];
+      }
+    }
+    return stats;
+  }
 }
 
 class Build {
-  constructor(armorList = [], vit = 0, stats = [0, 0, 0, 0, 0, 0, 0, 0, 0]) {
-    this.stats = stats
+  constructor(armorList = [], vit = 0) {
     this.armorList = armorList;
+    this.stats = calculateStats(armorList);
     this.vit = vit;
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
-    this.hash = getHash(stats);
+    this.hash = getHash(this.stats);
     // this.statCode = getStatCode(stats);
     this.multiplier = getMult(this) + (enchantMax * this.enchantsLeft() + jewelMax * this.jewelsLeft() + modifierMax * this.modifiersLeft()) / (BASE_ATTACK / 2 + BASE_HEALTH / Ratio[1] / 2);
   }
@@ -288,13 +319,10 @@ class Build {
           <th>Armor</th>
           ${this.armorList.map(armor => {
             const armorName = armor.toString().replaceAll("_", " ");
-            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.canMod ? armor.modifier : ""} ${armorName}</td></tr>`;
+            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier + " " : ""}${armor.enchant} ${armorName}</td></tr>
+            <tr><td>${armor.jewels.join(" ")}</td></tr>`;
           }).join("")}
         </table>
-        <div class="br-small"></div>
-        <div>Enchants: ${this.getEnchants().map((val, i) => `${val} ${Armors[4][i].name}`).filter((val, i) => val[0] != "0").join(", ")}</div>
-        <div>Jewels: ${this.getJewels().map((val, i) => `${val} ${Armors[6][i].name}`).filter((val, i) => val[0] != "0").join(", ")}</div>
-        ${insanity > 0 ? `<div>${insanity} Atlantean Essence</div>` : ""}
       </div>
     `;
   }
@@ -405,7 +433,7 @@ const jewelMaxStats = [0, 0, 0, 0, 0, 0];
 const modifierMaxStats = [0, 0, 0, 0, 0, 0];
 
 const BUILD_SIZE = 100;
-const ARMOR_SIZE = 1000;
+const ARMOR_SIZE = 500;
 
 let defaultSettings;
 
@@ -446,8 +474,6 @@ async function getInfo(fileName) {
     const words = line.split(" ");
     const category = words[0];
     const name = words[1];
-    if (name == "Atlantean")
-      continue;
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
     let canMod = false;
@@ -479,7 +505,7 @@ async function getInfo(fileName) {
       for (let i = 0; i < 6; i++)
         enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
     }
-    if (index == Order.indexOf("Modifier")) {
+    if (index == Order.indexOf("Modifier") && name != "Atlantean") {
       modifierMax = Math.max(modifierMax, normalizeStats(stats));
       for (let i = 0; i < 6; i++)
         modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
@@ -495,6 +521,16 @@ function normalizeStats(stats) {
 // Used for making new build objects
 function duplicateArmorList(armorList) {
   return armorList.map(armor => new MainArmor(armor.name, armor.stats, armor.jewelSlots, armor.canMod, armor.enchant, armor.jewels.slice(), armor.modifier));
+}
+
+// Recalculates all stats, used for atlantean
+function calculateStats(armorList) {
+  let stats = new Array(StatOrder.length).fill(0);
+  for (const armor of armorList) {
+    const armorStats = armor.getTotalStats();
+    stats = stats.map((val, i) => val + armorStats[i]);
+  }
+  return stats;
 }
 
 // The main function. Returns an array of the top 100 builds
@@ -542,8 +578,6 @@ function solve() {
             }
             if (armorStats[8] > drawback)
               continue;
-            armorStats[0] += 12 * insanity;
-            armorStats[6] = insanity;
             const build = new Build(armorList, vit, armorStats);
             nArmor++;
             if (build.isValid()) {
@@ -575,12 +609,14 @@ function solve() {
   log(console.time, "solveModifier");
   for (let i = 0; i < 5; i++) {
     for (const armorBuild of builds) {
-      if (!armorBuild.armorList[i].canMod) {
+      if (!armorBuild.armorList[i].canMod)
         modifierSet.add(armorBuild);
-        continue;
-      }
       for (const j in Armors[7]) {
         const modifier = Armors[7][j];
+        if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
+          continue;
+        if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
+          continue;
         const stats = armorBuild.stats.slice();
         for (const k of modifier.nonZeroStats) {
           stats[k] += modifier.stats[k];
@@ -650,6 +686,8 @@ function solve() {
       for (const j in Armors[4]) {
         const enchant = Armors[4][j];
         if (armorBuild.warding() == warding && enchant.name == "Virtuous")
+          continue;
+        if (warding - armorBuild.warding() == 5 - i && enchant.name != "Virtuous")
           continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
