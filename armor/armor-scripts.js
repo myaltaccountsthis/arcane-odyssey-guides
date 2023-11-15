@@ -319,11 +319,10 @@ class Build {
           <th>Armor</th>
           ${this.armorList.map(armor => {
             const armorName = armor.toString().replaceAll("_", " ");
-            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier + " " : ""}${armor.enchant} ${armorName}</td></tr>`;
+            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier + " " : ""}${armor.enchant} ${armorName}</td></tr>
+            <tr><td>${armor.jewels.join(" ")}</td></tr>`;
           }).join("")}
         </table>
-        <div class="br-small"></div>
-        <div>Jewels: ${this.armorList.map((armor) => armor.jewels.map((i) => i).join(" ")).join(", ")}</div>
       </div>
     `;
   }
@@ -506,7 +505,7 @@ async function getInfo(fileName) {
       for (let i = 0; i < 6; i++)
         enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
     }
-    if (index == Order.indexOf("Modifier")) {
+    if (index == Order.indexOf("Modifier") && name != "Atlantean") {
       modifierMax = Math.max(modifierMax, normalizeStats(stats));
       for (let i = 0; i < 6; i++)
         modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
@@ -687,6 +686,8 @@ function solve() {
       for (const j in Armors[4]) {
         const enchant = Armors[4][j];
         if (armorBuild.warding() == warding && enchant.name == "Virtuous")
+          continue;
+        if (warding - armorBuild.warding() == 5 - i && enchant.name != "Virtuous")
           continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
