@@ -13,6 +13,10 @@ let drawback = 0;
 let includeSecondary = true;
 let useSunken = true;
 let useAmulet = true;
+let useJewels = true;
+let useModifier = true;
+let exoticEnchant = true;
+let exoticJewel = true;
 let nonZero = true;
 let logEnabled = true;
 
@@ -205,7 +209,7 @@ class Build {
     this.jewelSlots = armorList.reduce((sum, armor) => sum + armor.jewelSlots, 0);
     this.hash = getHash(this.stats);
     // this.statCode = getStatCode(stats);
-    this.multiplier = getMult(this) + (enchantMax * this.enchantsLeft() + jewelMax * this.jewelsLeft() + modifierMax * this.modifiersLeft()) / (BASE_ATTACK / 2 + BASE_HEALTH / Ratio[1] / 2);
+    this.multiplier = getMult(this) + getExtraTotalStats(this) / (BASE_ATTACK / 2 + BASE_HEALTH / Ratio[1] / 2);
   }
   
   value() {
@@ -394,7 +398,8 @@ function getExtraStats(build) {
   const virtuous = warding - build.warding();
   
   statsLeft += virtuous * 54 / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
-  statsLeft += painites * 125 / Ratio[1] + (jewelsLeft - painites) * jewelMax;
+  if (useJewels)
+    statsLeft += painites * 125 / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   
   for (const i in build.stats) {
     if (!includeSecondary && i >= 2)
@@ -412,6 +417,15 @@ function getExtraStats(build) {
     statsLeft -= Math.max((minStats[i] - build.stats[i]), 0) * Ratio[0] / Ratio[i];
   }
   return statsLeft;
+}
+
+function getExtraTotalStats(build) {
+  let val = enchantMax * build.enchantsLeft();
+  if (useJewels)
+    val += jewelMax * build.jewelsLeft();
+  if (useModifier)
+    val += modifierMax * build.modifiersLeft();
+  return val;
 }
 
 // Returns the total number of stats, normalized to power, in the build 
@@ -477,6 +491,7 @@ async function getInfo(fileName) {
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
     let canMod = false;
+    let invalid = false;
     for (let i = 2; i < words.length; i++) {
       const entry = words[i].split(":");
       const stat = entry[0];
@@ -488,11 +503,24 @@ async function getInfo(fileName) {
       if (stat == "modifier") {
         canMod = true;
       }
+      if (stat == "exotic") {
+        if (category == "Enchant" && !exoticEnchant) {
+          invalid = true;
+          break;
+        }
+        if (category == "Jewel" && !exoticJewel) {
+          invalid = true;
+          break;
+        }
+      }
       stats[StatOrder.indexOf(stat)] = val;
     }
+    if (invalid)
+      continue;
     const armor = new Armor(name, stats, jewels, canMod);
     const index = Order.indexOf(category);
     Armors[index].push(armor);
+
     if (stats[8] > 0)
       continue;
     if (index == Order.indexOf("Jewel")) {
@@ -721,87 +749,89 @@ function solve() {
   }
   console.log(builds[0]);
   log(console.timeEnd, "solveEnchant");
-  const jewelSet = new CustomSet();
+  const jewelSet = useJewels ? new CustomSet() : enchantSet;
   // Get best builds with jewels if useJewels
-  log(console.time, "solveJewels");
-  for (let i = 0; i < 10; i++) {
-    for (const enchantBuild of builds) {
-      if (enchantBuild.jewelSlots < 10 - i) {
-        jewelSet.add(enchantBuild);
-        continue;
-      }
-      /*
-      const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
-      for (const jewels of jewelCombinations) {
-        const combination = jewels.stats;
-        const stats = enchantBuild.stats.slice();
-        for (const i of jewels.nonZeroStats) {
-          stats[i] += combination[i] * Armors[6][i].stats[i];
-        }
-        const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, combination);
-        nJewel++;
-        if (build.isValid()) {
-          validJewel++;
-          if (jewelSet.add(build)) {
-            actualJewel++;
-          }
-          else {
-            dupesJewel++;
-          }
-
-          if (jewelSet.size > ARMOR_SIZE * 10) {
-            const buildArr = purge(jewelSet.toList());
-            jewelSet.clear();
-            jewelSet.addAll(buildArr);
-            purgesJewel++;
-          }
-        }
-      }
-      */
-      for (const j in Armors[6]) {
-        const jewel = Armors[6][j];
-        if (drawback - enchantBuild.drawback() < 10 - i && jewel.name == "Painite")
+  if (useJewels) {
+    log(console.time, "solveJewels");
+    for (let i = 0; i < 10; i++) {
+      for (const enchantBuild of builds) {
+        if (enchantBuild.jewelSlots < 10 - i) {
+          jewelSet.add(enchantBuild);
           continue;
-        const stats = enchantBuild.stats.slice();
-        for (const k of jewel.nonZeroStats) {
-          stats[k] += jewel.stats[k];
         }
-
-        const armorList = duplicateArmorList(enchantBuild.armorList);
-
-        // figure out which armor to add jewel to
-        let index = 0, used = enchantBuild.jewelSlots - 10 + i; 
-        for (const armor of armorList) {
-          if (used < armor.jewelSlots) {
-            break;
+        /*
+        const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
+        for (const jewels of jewelCombinations) {
+          const combination = jewels.stats;
+          const stats = enchantBuild.stats.slice();
+          for (const i of jewels.nonZeroStats) {
+            stats[i] += combination[i] * Armors[6][i].stats[i];
           }
-          index++;
-          used -= armor.jewelSlots;
+          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, combination);
+          nJewel++;
+          if (build.isValid()) {
+            validJewel++;
+            if (jewelSet.add(build)) {
+              actualJewel++;
+            }
+            else {
+              dupesJewel++;
+            }
+
+            if (jewelSet.size > ARMOR_SIZE * 10) {
+              const buildArr = purge(jewelSet.toList());
+              jewelSet.clear();
+              jewelSet.addAll(buildArr);
+              purgesJewel++;
+            }
+          }
         }
-        armorList[index].jewels[used] = jewel;
-        const build = new Build(armorList, vit, stats);
-        nJewel++;
-        if (build.isValid()) {
-          validJewel++;
-          if (jewelSet.add(build)) {
-            actualJewel++;
-          }
-          else {
-            dupesJewel++;
+        */
+        for (const j in Armors[6]) {
+          const jewel = Armors[6][j];
+          if (drawback - enchantBuild.drawback() < 10 - i && jewel.name == "Painite")
+            continue;
+          const stats = enchantBuild.stats.slice();
+          for (const k of jewel.nonZeroStats) {
+            stats[k] += jewel.stats[k];
           }
 
-          if (jewelSet.size > ARMOR_SIZE * 10) {
-            const buildArr = purge(jewelSet.toList());
-            jewelSet.clear();
-            jewelSet.addAll(buildArr);
-            purgesJewel++;
+          const armorList = duplicateArmorList(enchantBuild.armorList);
+
+          // figure out which armor to add jewel to
+          let index = 0, used = enchantBuild.jewelSlots - 10 + i; 
+          for (const armor of armorList) {
+            if (used < armor.jewelSlots) {
+              break;
+            }
+            index++;
+            used -= armor.jewelSlots;
+          }
+          armorList[index].jewels[used] = jewel;
+          const build = new Build(armorList, vit, stats);
+          nJewel++;
+          if (build.isValid()) {
+            validJewel++;
+            if (jewelSet.add(build)) {
+              actualJewel++;
+            }
+            else {
+              dupesJewel++;
+            }
+
+            if (jewelSet.size > ARMOR_SIZE * 10) {
+              const buildArr = purge(jewelSet.toList());
+              jewelSet.clear();
+              jewelSet.addAll(buildArr);
+              purgesJewel++;
+            }
           }
         }
       }
+      builds = purge(jewelSet.toList());
+      jewelSet.clear();
+      purgesJewel++;
     }
-    builds = purge(jewelSet.toList());
-    jewelSet.clear();
-    purgesJewel++;
   }
   console.log(builds[0]);
   log(console.timeEnd, "solveJewels");
@@ -846,6 +876,10 @@ async function run() {
 async function update() {
   useSunken = document.getElementById("use-sunken").checked;
   useAmulet = document.getElementById("use-amulet").checked;
+  useJewels = document.getElementById("use-jewels").checked;
+  useModifier = document.getElementById("use-modifier").checked;
+  exoticEnchant = document.getElementById("exotic-enchant").checked;
+  exoticJewel = document.getElementById("exotic-jewel").checked;
   const armorList = document.getElementById("armor-list");
 
   armorList.innerHTML = "<div>Loading...</div>";
@@ -969,6 +1003,18 @@ function modeBonusChange(input) {
     MODE_BONUS = value / 100;
     updateCopyPaste();
   }
+}
+
+function toggleExoticEnchant(input) {
+  exoticEnchant = input.checked;
+  getInfo("info.json");
+  updateCopyPaste();
+}
+
+function toggleExoticJewel(input) {
+  exoticJewel = input.checked;
+  getInfo("info.json");
+  updateCopyPaste();
 }
 
 // Copy Paste feature
