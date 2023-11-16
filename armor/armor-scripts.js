@@ -717,6 +717,8 @@ function solve() {
           continue;
         if (warding - armorBuild.warding() == 5 - i && enchant.name != "Virtuous")
           continue;
+        if (armorBuild.armorList[i].modifier == undefined && enchant.name == "Atlantean" && enchant.name == "Virtuous")
+          continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
           stats[k] += enchant.stats[k];
