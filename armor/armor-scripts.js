@@ -400,6 +400,8 @@ function getExtraStats(build) {
   statsLeft += virtuous * 54 / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
   if (useJewels)
     statsLeft += painites * 125 / Ratio[1] + (jewelsLeft - painites) * jewelMax;
+  if (useModifier)
+    statsLeft += modifiersLeft * modifierMax;
   
   for (const i in build.stats) {
     if (!includeSecondary && i >= 2)
@@ -633,47 +635,49 @@ function solve() {
   purgesArmor++;
   log(console.timeEnd, "solveArmor");
 
-  const modifierSet = new CustomSet();
-  log(console.time, "solveModifier");
-  for (let i = 0; i < 5; i++) {
-    for (const armorBuild of builds) {
-      if (!armorBuild.armorList[i].canMod)
-        modifierSet.add(armorBuild);
-      for (const j in Armors[7]) {
-        const modifier = Armors[7][j];
-        if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
-          continue;
-        if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
-          continue;
-        const stats = armorBuild.stats.slice();
-        for (const k of modifier.nonZeroStats) {
-          stats[k] += modifier.stats[k];
-        }
-        const armorList = duplicateArmorList(armorBuild.armorList);
-        armorList[i].modifier = modifier;
-        const build = new Build(armorList, vit, stats);
-        nModifier++;
-        if (build.isValid()) {
-          validModifier++;
-          if (modifierSet.add(build)) {
-            actualModifier++;
+  const modifierSet = useModifier ? new CustomSet() : armorSet;
+  if (useModifier) {
+    log(console.time, "solveModifier");
+    for (let i = 0; i < 5; i++) {
+      for (const armorBuild of builds) {
+        if (!armorBuild.armorList[i].canMod)
+          modifierSet.add(armorBuild);
+        for (const j in Armors[7]) {
+          const modifier = Armors[7][j];
+          if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
+            continue;
+          if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
+            continue;
+          const stats = armorBuild.stats.slice();
+          for (const k of modifier.nonZeroStats) {
+            stats[k] += modifier.stats[k];
           }
-          else {
-            dupesModifier++;
-          }
-          
-          if (modifierSet.size > ARMOR_SIZE * 10) {
-            const modifierArr = purge(modifierSet.toList());
-            modifierSet.clear();
-            modifierSet.addAll(modifierArr);
-            purgesModifier++;
+          const armorList = duplicateArmorList(armorBuild.armorList);
+          armorList[i].modifier = modifier;
+          const build = new Build(armorList, vit, stats);
+          nModifier++;
+          if (build.isValid()) {
+            validModifier++;
+            if (modifierSet.add(build)) {
+              actualModifier++;
+            }
+            else {
+              dupesModifier++;
+            }
+            
+            if (modifierSet.size > ARMOR_SIZE * 10) {
+              const modifierArr = purge(modifierSet.toList());
+              modifierSet.clear();
+              modifierSet.addAll(modifierArr);
+              purgesModifier++;
+            }
           }
         }
       }
+      builds = purge(modifierSet.toList());
+      modifierSet.clear();
+      purgesModifier++;
     }
-    builds = purge(modifierSet.toList());
-    modifierSet.clear();
-    purgesModifier++;
   }
 
   console.log(builds[0]);
