@@ -12,6 +12,7 @@ let warding = 4;
 let drawback = 0;
 let includeSecondary = true;
 let useSunken = true;
+let sunkenWarrior = true;
 let useAmulet = true;
 let useJewels = true;
 let useModifier = true;
@@ -579,17 +580,21 @@ function solve() {
       continue;
     if (!useSunken && armor.name.startsWith("Sunken"))
       continue;
+    if (!sunkenWarrior && armor.name.startsWith("Sunken_Warrior"))
+      continue;
 
     for (const boot of Armors[2]) {
       if (drawback < 1 && boot.name.startsWith("Vatrachos"))
         continue;
       if (!useSunken && boot.name.startsWith("Sunken"))
         continue;
+      if (!sunkenWarrior && boot.name.startsWith("Sunken_Warrior"))
+        continue;
 
       for (let i = 0; i < Armors[1].length; i++) {
         const accessory1 = Armors[1][i];
         // Make accessory2 array (helmets)
-        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 1 || !helmet.name.startsWith("Vatrachos")));
+        const helmets = Armors[5].filter(helmet => (useSunken || !helmet.name.startsWith("Sunken")) && (drawback >= 1 || !helmet.name.startsWith("Vatrachos")) && (sunkenWarrior || !helmet.name.startsWith("Sunken_Warrior")));
         const length = helmets.length;
         const accessories2 = helmets.concat(Armors[1].slice(i + 1));
 
@@ -881,6 +886,7 @@ async function run() {
 // Update the list of builds (takes a long time to run)
 async function update() {
   useSunken = document.getElementById("use-sunken").checked;
+  sunkenWarrior = document.getElementById("sunken-warrior").checked;
   useAmulet = document.getElementById("use-amulet").checked;
   useJewels = document.getElementById("use-jewels").checked;
   useModifier = document.getElementById("use-modifier").checked;
