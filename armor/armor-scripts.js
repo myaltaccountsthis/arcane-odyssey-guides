@@ -378,14 +378,31 @@ function getMult(build) {
 
 // secondary stats multiplier
 function otherMult(build) {
-  const modeMultiplier = 1 / (1 / MODE_BONUS + 1);
-  return ((estimateMultComplex(build.stats[2]) - 1) * getSizeWeight() * 4/7 + 1) * ((1 + estimateMultComplex(build.stats[3]) * getIntensityWeight() * modeMultiplier) / (1 + getIntensityWeight() * modeMultiplier)) * ((estimateMultComplex(build.stats[4]) - 1) * getSpeedWeight() * 4/7 + 1) * ((estimateMultComplex(build.stats[5]) - 1) * getAgilityWeight() * 4/7 + 1);
+  return getSizeMult(build.stats[2]) * getIntensityMult(build.stats[3]) * getSpeedMult(build.stats[4]) * getAgilityMult(build.stats[5]);
 }
 
 // estimate effect of secondary stats (bc non-linear)
 function estimateMultComplex(stat) {
   // return Math.pow(.01194 * Math.pow(stat, 1.188) + 1, .3415) + .06195 * Math.pow(stat, .2992) - .0893 * Math.log(stat + 1) / Math.log(30);
-  return 2.02197 * Math.pow(stat + 22.5647, -.22586) + .0316989 * Math.pow(stat, .733205);
+  // return 2.02197 * Math.pow(stat + 22.5647, -.22586) + .0316989 * Math.pow(stat, .733205);
+  return stat == 0 ? 1 : (1.35 * ((16 * Math.log(.1 * stat + 4) ** 3) *.09 + .15 * stat) / (.1 + .15 * Math.sqrt(MAX_LEVEL)) - .79) / 100 + 1;
+}
+
+function getSizeMult(stat) {
+  return ((estimateMultComplex(stat) - 1) * getSizeWeight() * .8 + 1);
+}
+
+function getIntensityMult(stat) {
+  return (estimateMultComplex(stat) * MODE_BONUS + 1) / (1 + MODE_BONUS) * ((estimateMultComplex(stat) - 1) * getIntensityWeight() + 1);
+}
+
+function getSpeedMult(stat) {
+  const startUpMult = 1.8 - estimateMultComplex(stat) * .8;
+  return ((estimateMultComplex(stat) - 1) * getSpeedWeight() * .8 + 1) * ((2 / (1 + Math.max(startUpMult, 0)) - 1) / 2 * getSpeedWeight() + 1);
+}
+
+function getAgilityMult(stat) {
+  return ((estimateMultComplex(stat) - 1) * getAgilityWeight() + 1);
 }
 
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
