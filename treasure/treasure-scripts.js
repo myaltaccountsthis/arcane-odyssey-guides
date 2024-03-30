@@ -3,7 +3,7 @@ const distanceNames = ["Few paces", "Halfway", "On the edge"];
 const islandNames = [
   "Frostmill Island", "Ravenna", "Forest of Cernunno", "Shell Island",
   "Harvest Island", "Whitesummit", "Munera Garden", "Wind-Row Island",
-  "Palo Town", "Blasted Rock"
+  "Palo Town", "Blasted Rock", "Sameria", "Shale Reef", "Drakos Arch", "Claw Island"
   // "Thorin's Refuge", "Limestone Key", "Akursius Keep", "Silverhold"
 ];
 let directionIndex = 0;
@@ -28,7 +28,7 @@ function get2DComponents(angle, radius) {
 function drawCanvas() {
   const ctx = getContext();
   // draw island
-  ctx.drawImage(image, 0, 0);
+  ctx.drawImage(image, 0, 0, 512, 512);
   // needed variables
   const angle = Math.PI * directionIndex / 8;
   const a1 = angle - Math.PI / 16, a2 = angle + Math.PI / 16
