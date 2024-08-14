@@ -161,11 +161,6 @@ h1 {
   display: inline-block;
 }
 
-svg {
-  width: 25px;
-  height: 25px;
-}
-
 line {
   stroke: black;
   stroke-width: 3px;

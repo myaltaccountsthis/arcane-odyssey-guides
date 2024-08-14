@@ -1,19 +1,21 @@
 // Custom set (hashmap implementation)
 
-class Entry {
-  constructor(key) {
+class Entry<T> {
+  key: T;
+  next: Entry<T> | null;
+
+  constructor(key: T) {
     this.key = key;
     this.next = null;
   }
 }
 
-export class CustomSet {
-  constructor(hashFunction, equalsFunction) {
+class CustomSet<T> {
+  constructor(hashFunction = build => build.hash, equalsFunction = (a, b) => a.equals(b)) {
     this.hashFunction = hashFunction;
     this.equalsFunction = equalsFunction;
     // we are dealing with hundreds of thousands of builds
-    this.entries = new Array(1000);
-    this.size = 0;
+    this.clear();
   }
 
   hash(key) {
@@ -37,6 +39,12 @@ export class CustomSet {
     }
     this.size++;
     return true;
+  }
+
+  addAll(arr) {
+    for (const key of arr) {
+      this.add(key);
+    }
   }
 
   contains(key) {
@@ -71,6 +79,11 @@ export class CustomSet {
     }
     this.size--;
     return true;
+  }
+
+  clear() {
+    this.entries = new Array(1000);
+    this.size = 0;
   }
 
   toList() {
