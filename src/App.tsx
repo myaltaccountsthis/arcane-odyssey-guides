@@ -1,9 +1,9 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import Treasure from "./pages/Treasure";
-import Armor from "./pages/Armor";
+import ArmorCalculator from "./pages/ArmorCalculator";
 
-export default function App() {
+function App() {
     const routes = createBrowserRouter([
         {
             path: "/",
@@ -15,8 +15,8 @@ export default function App() {
             element: <Treasure />
         },
         {
-            path: "armor",
-            element: <Armor />
+            path: "/armor",
+            element: <ArmorCalculator />
         }
     ]);
 
@@ -24,3 +24,5 @@ export default function App() {
         <RouterProvider router={routes} />
     </>
 }
+
+export default App;

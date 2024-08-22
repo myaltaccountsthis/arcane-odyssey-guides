@@ -11,24 +11,33 @@ class Entry<T> {
 }
 
 class CustomSet<T> {
-  constructor(hashFunction = build => build.hash, equalsFunction = (a, b) => a.equals(b)) {
+  hashFunction: (key: T) => number;
+  equalsFunction: (a: T, b: T) => boolean;
+  entries: (Entry<T> | null)[];
+  size: number;
+
+  constructor(
+    hashFunction: (key: T) => number,
+    equalsFunction: (a: T, b: T) => boolean
+  ) {
     this.hashFunction = hashFunction;
     this.equalsFunction = equalsFunction;
     // we are dealing with hundreds of thousands of builds
+    this.entries = new Array(1000);
+    this.size = 0;
     this.clear();
   }
 
-  hash(key) {
+  hash(key: T) {
     return this.hashFunction(key) % this.entries.length;
   }
 
-  add(key) {
+  add(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     if (entry == null) {
       this.entries[hash] = new Entry(key);
-    }
-    else {
+    } else {
       while (entry.next != null && !this.equalsFunction(entry.key, key)) {
         entry = entry.next;
       }
@@ -41,13 +50,13 @@ class CustomSet<T> {
     return true;
   }
 
-  addAll(arr) {
+  addAll(arr: T[]) {
     for (const key of arr) {
       this.add(key);
     }
   }
 
-  contains(key) {
+  contains(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     while (entry != null) {
@@ -59,7 +68,7 @@ class CustomSet<T> {
     return false;
   }
 
-  remove(key) {
+  remove(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     if (entry == null) {
@@ -67,8 +76,7 @@ class CustomSet<T> {
     }
     if (this.equalsFunction(entry.key, key)) {
       this.entries[hash] = entry.next;
-    }
-    else {
+    } else {
       while (entry.next != null && !this.equalsFunction(entry.next.key, key)) {
         entry = entry.next;
       }
@@ -98,3 +106,5 @@ class CustomSet<T> {
     return list;
   }
 }
+
+export default CustomSet;
