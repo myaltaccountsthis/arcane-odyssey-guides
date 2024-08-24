@@ -37,31 +37,25 @@ BaseArmor.prototype.toString = function () {
 class Armor extends BaseArmor {
   jewelSlots: number;
   canMod: boolean;
-
-  constructor(
-    name: string,
-    stats: number[],
-    jewelSlots: number,
-    canMod = false
-  ) {
-    super(name, stats);
-    this.jewelSlots = jewelSlots;
-    this.canMod = canMod;
-  }
-}
-
-class EnchantArmor extends Armor {
-  enchant: BaseArmor;
+  enchant?: BaseArmor;
+  jewels: BaseArmor[];
+  modifier?: BaseArmor;
 
   constructor(
     name: string,
     stats: number[],
     jewelSlots: number,
     canMod = false,
-    enchant: BaseArmor
+    enchant?: BaseArmor,
+    jewels: BaseArmor[] = [],
+    modifier?: BaseArmor
   ) {
-    super(name, stats, jewelSlots, canMod);
-    this.enchant = enchant;
+    super(name, stats);
+    this.jewelSlots = jewelSlots;
+    this.canMod = canMod;
+    if (enchant) this.enchant = enchant;
+    this.jewels = jewels;
+    if (modifier) this.modifier = modifier;
   }
 
   public override getTotalStats() {
@@ -70,56 +64,12 @@ class EnchantArmor extends Armor {
       for (const i of this.enchant.nonZeroStats)
         stats[i] += this.enchant.stats[i];
     }
-    return stats;
-  }
-}
 
-class JewelArmor extends EnchantArmor {
-  jewels: BaseArmor[];
-
-  constructor(
-    name: string,
-    stats: number[],
-    jewelSlots: number,
-    canMod = false,
-    enchant: BaseArmor,
-    jewels: BaseArmor[]
-  ) {
-    super(name, stats, jewelSlots, canMod, enchant);
-    this.jewels = jewels;
-  }
-
-  public override getTotalStats() {
-    const stats = super.getTotalStats();
     for (const jewel of this.jewels) {
-      if (jewel != undefined) {
-        for (const i of jewel.nonZeroStats) stats[i] += jewel.stats[i];
-      }
+      for (const i of jewel.nonZeroStats) stats[i] += jewel.stats[i];
     }
-    return stats;
-  }
-}
 
-// No mod should be a modifier to make typescript not angry
-class ModifierArmor extends JewelArmor {
-  modifier: BaseArmor;
-
-  constructor(
-    name: string,
-    stats: number[],
-    jewelSlots: number,
-    canMod = false,
-    enchant: BaseArmor,
-    jewels: BaseArmor[],
-    modifier: BaseArmor
-  ) {
-    super(name, stats, jewelSlots, canMod, enchant, jewels);
-    this.modifier = modifier;
-  }
-
-  public getTotalStats() {
-    const stats = super.getTotalStats();
-    if (this.modifier.name != "None") {
+    if (this.modifier) {
       if (this.modifier.name == "Atlantean") {
         let i = 0;
         for (; i < 6; i++) {
@@ -135,21 +85,6 @@ class ModifierArmor extends JewelArmor {
     }
     return stats;
   }
-}
-
-const classTier: { [key: string]: number } = {
-  Armor: 0,
-  EnchantArmor: 1,
-  JewelArmor: 2,
-  ModifierArmor: 3,
-};
-
-function getClassTier(armor: Armor) {
-  return classTier[armor.constructor.name];
-}
-
-function isArmorTier(armor: Armor, type: string) {
-  return getClassTier(armor) >= classTier[type];
 }
 
 class Build {
@@ -192,57 +127,14 @@ class Build {
     return true;
   }
 
-  // Stat functions
-  power() {
-    return this.stats[0];
-  }
-  defense() {
-    return this.stats[1];
-  }
-  size() {
-    return this.stats[2];
-  }
-  intensity() {
-    return this.stats[3];
-  }
-  speed() {
-    return this.stats[4];
-  }
-  agility() {
-    return this.stats[5];
-  }
-  insanity() {
-    return this.stats[6];
-  }
-  warding() {
-    return this.stats[7];
-  }
-  drawback() {
-    return this.stats[8];
-  }
-
   numEnchants() {
-    return this.armorList.reduce(
-      (sum, armor) => sum + (isArmorTier(armor, "EnchantArmor") ? 1 : 0),
-      0
-    );
+    return this.armorList.reduce((sum, armor) => sum + (armor.enchant ? 1 : 0), 0);
   }
   numJewels() {
-    return this.armorList.reduce(
-      (sum, armor) =>
-        sum +
-        (armor.jewelSlots > 0 && isArmorTier(armor, "JewelArmor")
-          ? armor.jewelSlots
-          : 0),
-      0
-    );
+    return this.armorList.reduce((sum, armor) => sum + (armor.jewels.filter(jewel => jewel).length), 0);
   }
   numModifiers() {
-    return this.armorList.reduce(
-      (sum, armor) =>
-        sum + (armor.canMod && isArmorTier(armor, "ModifierArmor") ? 1 : 0),
-      0
-    );
+    return this.armorList.reduce((sum, armor) => sum + (armor.modifier ? 1 : 0), 0);
   }
 
   enchantsLeft() {
@@ -252,19 +144,14 @@ class Build {
     return this.jewelSlots - this.numJewels();
   }
   modifiersLeft() {
-    return this.armorList
-      .map((armor) =>
-        armor.canMod && !isArmorTier(armor, "ModifierArmor") ? 1 : 0
-      )
-      .reduce((sum: number, val) => sum + val, 0);
+    return this.armorList.map(armor => armor.canMod && armor.modifier ? 1 : 0).reduce((sum: number, val) => sum + val, 0);
   }
 
   getEnchants() {
     const enchants = new Array(Armors[4].length).fill(0);
     for (const armor of this.armorList) {
-      if (isArmorTier(armor, "EnchantArmor")) {
-        enchants[Armors[4].indexOf((armor as EnchantArmor).enchant)]++;
-      }
+      if (armor.enchant != undefined)
+        enchants[Armors[4].indexOf(armor.enchant)]++;
     }
     return enchants;
   }
@@ -272,20 +159,15 @@ class Build {
   getJewels() {
     const jewels = new Array(Armors[6].length).fill(0);
     for (const armor of this.armorList) {
-      if (armor.jewelSlots > 0 && isArmorTier(armor, "JewelArmor")) {
-        for (const jewel of (armor as JewelArmor).jewels) {
-          if (jewel != undefined) jewels[Armors[6].indexOf(jewel)]++;
-        }
+      for (const jewel of armor.jewels) {
+        if (jewel != undefined)
+          jewels[Armors[6].indexOf(jewel)]++;
       }
     }
     return jewels;
   }
 
-  isValid() {
-    if (this.numEnchants() == 5 && this.numJewels() == this.jewelSlots)
-      return this.stats.every((val, i) => val >= minStats[i]);
-    return getExtraStats(this) >= -0.05;
-  }
+  
 
   // HTML incorporation
   // value is from (1.7, 2.7)
@@ -293,56 +175,34 @@ class Build {
     return getMultiplierColorStr(this.multiplier);
   }
 
-  toString() {
-    let output = `Multiplier: ${
-      Math.round(this.multiplier * 10000) / 10000
-    }\nBonus Stats: ${this.stats.join("/")}\nArmor: ${this.armorList.join(
-      " "
-    )}`;
-    output += `\nEnchants: ${this.getEnchants().join("/")}`;
-    return output;
-  }
-
   asHTML() {
     return `
-        <div class="list-element">
-          <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(
-      this.multiplier
-    )}</span></div>
-          ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(
-            getBaseMult(this)
-          )}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
-          <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(
-            getPowerEquivalence(this) / 80
-          )}">${getFormattedMultiplierStr(
-      getPowerEquivalence(this),
-      2
-    )}</span></div>
-          <div>${StatOrder.map((stat) =>
-            nonZero && this[stat]() == 0
-              ? ``
-              : `<span class="${stat}">${this[
-                  stat
-                ]()}</span><img class="icon" src="./armor/${stat}_icon.png">`
-          ).join(" ")}</div>
-          <div class="br-small"></div>
-          <table>
-            <th>Armor</th>
-            ${this.armorList
-              .map((armor) => {
-                const armorName = armor.toString().replaceAll("_", " ");
-                return `<tr><td class="${armorName
-                  .split(" ")[0]
-                  .toLowerCase()}">${
-                  armor.modifier != undefined ? armor.modifier + " " : ""
-                }${armor.enchant} ${armorName}</td></tr>
-              <tr><td>${armor.jewels.join(" ")}</td></tr>`;
-              })
-              .join("")}
-          </table>
-        </div>
-      `;
+      <div class="list-element">
+        <div title="Multiplier of all stats, scales with weight">Multiplier: <span style="color: ${this.multiplierColorStr()}">${getFormattedMultiplierStr(this.multiplier)}</span></div>
+        ${`<div title="Multiplier from power and defense">Base Multiplier: <span style="color: ${getMultiplierColorStr(getBaseMult(this))}">${getFormattedMultiplierStr(getBaseMult(this))}</span></div>`}
+        <div title="Total stats, normalized to power">Power Equivalence: <span style="color: ${getMultiplierColorStr(getPowerEquivalence(this) / 80)}">${getFormattedMultiplierStr(getPowerEquivalence(this), 2)}</span></div>
+        <div>${StatOrder.map(stat => this.stats[statToIndex[stat]] == 0 ? `` : `<span class="${stat}">${this.stats[statToIndex[stat]]}</span><img class="icon" src="./armor/${stat}_icon.png">`).join(" ")}</div>
+        <div class="br-small"></div>
+        <table>
+          <th>Armor</th>
+          ${this.armorList.map(armor => {
+            const armorName = armor.toString().replaceAll("_", " ");
+            return `<tr><td class="${armorName.split(" ")[0].toLowerCase()}">${armor.modifier != undefined ? armor.modifier + " " : ""}${armor.enchant} ${armorName}</td></tr>
+            <tr><td>${armor.jewels.join(" ")}</td></tr>`;
+          }).join("")}
+        </table>
+      </div>
+    `;
   }
+}
+Build.prototype.toString = function() {
+  return `Multiplier: ${(Math.round(this.multiplier * 10000) / 10000)}\nBonus Stats: ${this.stats.join("/")}\nArmor: ${this.armorList.join(" ")}`;
+}
+
+function isValid(build: Build, minStats: number[]) {
+  if (build.numEnchants() == 5 && build.numJewels() == build.jewelSlots)
+    return build.stats.every((val, i) => val >= minStats[i]);
+  return getExtraStats(build) >= -.05;
 }
 
 function getHash(build: Build) {
@@ -367,7 +227,7 @@ function getMultiplierColorStr(mult: number) {
 
 function getFormattedMultiplierStr(
   mult: number,
-  decimals: number = decimalPlaces
+  decimals: number
 ) {
   const tens = 10 ** decimals;
   return `${Math.floor(mult)}.${(Math.floor(mult * tens) % tens)
@@ -376,32 +236,32 @@ function getFormattedMultiplierStr(
 }
 
 // pow/def, vit multiplier without weight
-function getBaseMult(build: Build, useWeight = false) {
+function getBaseMult(build: Build, weights: number[], useWeight = false) {
+  const vitDamage = Math.sqrt(BASE_HEALTH / (build.vit * HEALTH_PER_VIT + BASE_HEALTH));
   return (
     (((build.vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH) *
-      (useWeight ? getDefenseWeight() : 1) +
+      (useWeight ? weights[1] : 1) +
       1) *
-    (((-build.vit / (MAX_LEVEL * 2)) * 0.5 + build.stats[0] / BASE_ATTACK) *
-      (useWeight ? getPowerWeight() : 1) +
+    ((build.stats[0] + BASE_ATTACK) * vitDamage *
+      (useWeight ? weights[0] : 1) +
       1)
   );
 }
 
 // Returns modified multiplier affected by weight
-function getMult(build: Build) {
+function getMult(build: Build, weights: number[]) {
   // const mult = (BASE_HEALTH * (1 + build.vit / (MAX_LEVEL * 2) * 1.1) + build.stats[1]) * getDefenseWeight() / BASE_HEALTH * (BASE_ATTACK + build.stats[0] * (1 - build.vit / (MAX_LEVEL * 2) * .5)) * getPowerWeight() / BASE_ATTACK;
-  const mult = getBaseMult(build, true);
-  if (includeSecondary) return mult * otherMult(build);
-  return mult;
+  const mult = getBaseMult(build, weights, true);
+  return mult * otherMult(build, weights);
 }
 
 // secondary stats multiplier
-function otherMult(build: Build) {
+function otherMult(build: Build, weights: number[]) {
   return (
-    ((estimateMultComplex(build.stats[2]) - 1) * getSizeWeight() * 0.68 + 1) *
-    ((estimateMultComplex(build.stats[3]) - 1) * getIntensityWeight() + 1) *
-    ((estimateMultComplex(build.stats[4]) - 1) * getSpeedWeight() * 0.4 + 1) *
-    ((estimateMultComplex(build.stats[5]) - 1) * getAgilityWeight() * 0.5 + 1)
+    ((estimateMultComplex(build.stats[2]) - 1) * weights[2] * 0.68 + 1) *
+    ((estimateMultComplex(build.stats[3]) - 1) * weights[3] + 1) *
+    ((estimateMultComplex(build.stats[4]) - 1) * weights[4] * 0.4 + 1) *
+    ((estimateMultComplex(build.stats[5]) - 1) * weights[5] * 0.5 + 1)
   );
 }
 
@@ -507,6 +367,20 @@ const StatOrder = [
   "warding",
   "drawback",
 ];
+const statToIndex: {[key: string]: number} = {
+  power: 0,
+  defense: 1,
+  size: 2,
+  intensity: 3,
+  speed: 4,
+  agility: 5,
+  regeneration: 6,
+  resistance: 7,
+  armorpiercing: 8,
+  insanity: 9,
+  warding: 10,
+  drawback: 11,
+};
 const MainStats = StatOrder.slice(0, 6);
 const Ratio = [1/3, 11/3, 1, 1, 1, 1, 1, 1, 1];
 let Armors: BaseArmor[][] = [[], [], [], [], [], [], [], []];
@@ -793,7 +667,7 @@ function solve() {
 
   console.log(builds[0]);
   log(console.timeEnd, "solveModifier");
-  const enchantSet = new CustomSet();
+  const enchantSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   log(console.time, "solveEnchant");
   // Get best builds with enchants
   // const enchantCombinations = calculateCombinations(includeSecondary ? 6 : 2, 5);
@@ -872,7 +746,7 @@ function solve() {
   }
   console.log(builds[0]);
   log(console.timeEnd, "solveEnchant");
-  const jewelSet = useJewels ? new CustomSet() : enchantSet;
+  const jewelSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   // Get best builds with jewels if useJewels
   if (useJewels) {
     log(console.time, "solveJewels");
