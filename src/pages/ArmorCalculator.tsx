@@ -4,7 +4,8 @@ import CheckboxGroup from "../components/CheckboxGroup";
 import SliderGroup from "../components/SliderGroup";
 import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
-import { BaseArmor, Armor, Build } from "../Backend.ts";
+import { BaseArmor, Armor, Build, solve, updateInputs } from "../Backend.ts";
+import BuildComponent from "../components/BuildComponent.tsx";
 
 // Stat order: power defense size intensity speed agility
 
@@ -94,15 +95,15 @@ function ArmorCalculator() {
     ];
 
     // Weights
-    const [powerWeight, setPowerWeight] = useState(1);
-    const [defenseWeight, setDefenseWeight] = useState(1);
-    const [sizeWeight, setSizeWeight] = useState(1);
-    const [intensityWeight, setIntensityWeight] = useState(1);
-    const [speedWeight, setSpeedWeight] = useState(1);
-    const [agilityWeight, setAgilityWeight] = useState(1);
-    const [regenerationWeight, setRegenerationWeight] = useState(1);
-    const [resistanceWeight, setResistanceWeight] = useState(1);
-    const [armorPiercingWeight, setArmorPiercingWeight] = useState(1);
+    const [powerWeight, setPowerWeight] = useState(100);
+    const [defenseWeight, setDefenseWeight] = useState(100);
+    const [sizeWeight, setSizeWeight] = useState(30);
+    const [intensityWeight, setIntensityWeight] = useState(20);
+    const [speedWeight, setSpeedWeight] = useState(40);
+    const [agilityWeight, setAgilityWeight] = useState(30);
+    const [regenerationWeight, setRegenerationWeight] = useState(10);
+    const [resistanceWeight, setResistanceWeight] = useState(10);
+    const [armorPiercingWeight, setArmorPiercingWeight] = useState(10);
     const weights = [
         { className: "power-weight", name: "Power", value: powerWeight, min: 0, max: 200, step: 1, onChange: setPowerWeight },
         { className: "defense-weight", name: "Defense", value: defenseWeight, min: 0, max: 200, step: 1, onChange: setDefenseWeight },
@@ -114,9 +115,17 @@ function ArmorCalculator() {
         { className: "resistance-weight", name: "Resistance", value: resistanceWeight, min: 0, max: 200, step: 1, onChange: setResistanceWeight },
         { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
     ];
-
+    
+    let builds: Build[] = [];
+    const [loading, setLoading] = useState(false);
     const update = () => {
-        
+        setLoading(true);
+        updateInputs(decimals, vit, useAmulet, useSunken, useModifier, insanity, maxDrawbacks, warding,
+            [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
+            [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
+        );
+        builds = solve();
+        setLoading(false);
     }
 
     return <div>
@@ -167,7 +176,12 @@ function ArmorCalculator() {
         <br />
         <input type="button" onClick={update} value="Update"  />
         <br />
-        <div id="armor-list"></div>
+        <div id="armor-list">
+            {loading && <div>Loading...</div>}
+            {builds.map((build, index) => {
+                return <BuildComponent key={index} build={build} />
+            })}
+        </div>
         <br />
         <div id="drop-downs">
             <DropDown title="More Info" lines={definition} boldLines={moreInfo}/>
