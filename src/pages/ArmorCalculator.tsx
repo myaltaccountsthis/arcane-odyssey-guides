@@ -6,6 +6,7 @@ import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
 import { BaseArmor, Armor, Build, solve, updateInputs } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
+import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
 
 // Stat order: power defense size intensity speed agility
 
@@ -37,10 +38,6 @@ function ArmorCalculator() {
         const val = !infoVisible
         setInfoVisible(val);
         window.sessionStorage.setItem("showInfo", val ? "true" : "false");
-    }
-
-    const setCopyPaste = (value: string) => {
-        return value;
     }
 
     useEffect(() => {
@@ -128,6 +125,36 @@ function ArmorCalculator() {
         setLoading(false);
     }
 
+    const getSettings: () => {[key: string]: any} = () => {
+        return {
+            s: useSunken ? 1 : 0,
+            a: useAmulet ? 1 : 0,
+            md: useModifier ? 1 : 0,
+            v: vit,
+            d: decimals,
+            i: insanity,
+            wa: warding,
+            dr: maxDrawbacks,
+            min: mins.map(info => info.value),
+            w: weights.map(info => info.value)
+        };
+    }
+    const setCopyPaste = (value: ArmorCalculatorSettings) => {
+        setUseSunken(value.s === 1);
+        setUseAmulet(value.a === 1);
+        setUseModifier(value.md === 1);
+        setVit(value.v);
+        setDecimals(value.d);
+        setInsanity(value.i);
+        setWarding(value.wa);
+        setMaxDrawbacks(value.dr);
+        mins.forEach((info, index) => info.onChange(value.min[index]));
+        weights.forEach((info, index) => info.onChange(value.w[index]));
+    }
+
+    const settings = getSettings();
+    const copyPaste = Object.keys(settings).map(key => `${key}:${JSON.stringify(settings[key])}`).join(";");
+
     return <div>
         <HelmetProvider>
             <Helmet>
@@ -172,7 +199,7 @@ function ArmorCalculator() {
             }
         </div>
         <br />
-        <CopyPasteSettings settingsStr="" setCopyPaste={setCopyPaste}/>
+        <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
         <input type="button" onClick={update} value="Update"  />
         <br />
