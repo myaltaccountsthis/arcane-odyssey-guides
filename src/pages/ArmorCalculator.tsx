@@ -4,7 +4,7 @@ import CheckboxGroup from "../components/CheckboxGroup";
 import SliderGroup from "../components/SliderGroup";
 import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
-import { BaseArmor, Armor, Build, solve, updateInputs } from "../Backend.ts";
+import { Build, solve, updateInputs } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
 import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
 
@@ -50,9 +50,9 @@ function ArmorCalculator() {
     const [useModifier, setUseModifier] = useState(true);
     const [useAmulet, setUseAmulet] = useState(true);
     const restrictions = [
-        { className: "use-sunken", name: "Use Sunken", value: useSunken, setValue: setUseSunken },
-        { className: "use-modifier", name: "Use Modifier", value: useModifier, setValue: setUseModifier },
-        { className: "use-amulet", name: "Use Amulet", value: useAmulet, setValue: setUseAmulet },
+        { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, setValue: setUseSunken },
+        { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, setValue: setUseModifier },
+        { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, setValue: setUseAmulet },
     ];
 
     // Options
@@ -113,7 +113,7 @@ function ArmorCalculator() {
         { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
     ];
     
-    let builds: Build[] = [];
+    const [builds, setBuilds]= useState<Build[]>([]);
     const [loading, setLoading] = useState(false);
     const update = () => {
         setLoading(true);
@@ -121,7 +121,7 @@ function ArmorCalculator() {
             [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
             [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
         );
-        builds = solve();
+        setBuilds(solve());
         setLoading(false);
     }
 

@@ -42,7 +42,7 @@ const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
 const HEALTH_PER_VIT = 4;
 const NUM_STATS = 9;
 // const MAIN_STATS = StatOrder.slice(0, NUM_STATS);
-const Ratio = [1/3, 11/3, 1, 1, 1, 1, 1, 1, 1];
+const Ratio = [1/3, 11/3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const Armors: Armor[][] = [[], [], [], [], []];
 const Enchants: BaseArmor[] = [];
 const Jewels: BaseArmor[] = [];
@@ -186,7 +186,7 @@ export class Build {
     this.hash = getHash(this);
     this.multiplier =
       getMult(this) +
-      getExtraTotalStats(this) / (BASE_ATTACK / 2 + BASE_HEALTH / Ratio[1] / 2);
+      getExtraTotalStats(this) / ((BASE_ATTACK / Ratio[0] + BASE_HEALTH / Ratio[1]) / 2);
     // this.statCode = getStatCode(stats);
   }
 
@@ -304,8 +304,12 @@ Build.prototype.toString = function() {
 }
 
 export function isValid(build: Build) {
-  if (build.numEnchants() == 5 && build.numJewels() == build.jewelSlots)
-    return build.stats.every((val, i) => val >= minStats[i]);
+  if (build.numEnchants() == 5 && build.numJewels() == build.jewelSlots) {
+    for (let i = 0; i < NUM_STATS; i++) {
+      if (build.stats[i] < minStats[i]) return false;
+    }
+    return true;
+  }
   return getExtraStats(build) >= -.05;
 }
 
@@ -345,7 +349,7 @@ export function getBaseMult(build: Build, useWeight = false) {
     (((vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH) *
       (useWeight ? weights[1] : 1) +
       1) *
-    ((build.stats[0] + BASE_ATTACK) * vitDamage *
+    ((build.stats[0] + BASE_ATTACK) * vitDamage / BASE_ATTACK *
       (useWeight ? weights[0] : 1) +
       1)
   );
@@ -364,7 +368,10 @@ export function otherMult(build: Build) {
     ((estimateMultComplex(build.stats[2]) - 1) * weights[2] * 0.68 + 1) *
     ((estimateMultComplex(build.stats[3]) - 1) * weights[3] + 1) *
     ((estimateMultComplex(build.stats[4]) - 1) * weights[4] * 0.4 + 1) *
-    ((estimateMultComplex(build.stats[5]) - 1) * weights[5] * 0.5 + 1)
+    ((estimateMultComplex(build.stats[5]) - 1) * weights[5] * 0.5 + 1) *
+    ((estimateMultComplex(build.stats[6]) - 1) * weights[6] + 1) *
+    ((estimateMultComplex(build.stats[7]) - 1) * weights[7] + 1) *
+    ((estimateMultComplex(build.stats[8]) - 1) * weights[8] + 1)
   );
 }
 
@@ -395,36 +402,35 @@ export function getExtraStats(build: Build) {
   statsLeft +=
     (painites * 125) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   if (useModifier) statsLeft += modifiersLeft * modifierMax;
-
-  for (let i = 0; i < build.stats.length; i++) {
+  for (let i = 0; i < NUM_STATS; i++) {
     if (i == 1) {
       if (drawback > 0) {
         if (
           minStats[i] - build.stats[i] >
           enchantsLeft * enchantMaxStats[i] +
-            painites * 125 +
-            (jewelsLeft - painites) * jewelMaxStats[i] +
-            modifiersLeft * modifierMaxStats[i]
+          painites * 125 +
+          (jewelsLeft - painites) * jewelMaxStats[i] +
+          modifiersLeft * modifierMaxStats[i]
         )
-          return -1;
+        return -1;
       } else if (
         warding > 0 &&
         minStats[i] - build.stats[i] >
-          virtuous * 54 +
-            (enchantsLeft - virtuous) * enchantMaxStats[i] +
-            jewelsLeft * jewelMaxStats[i] +
-            modifiersLeft * modifierMaxStats[i]
+        virtuous * 54 +
+        (enchantsLeft - virtuous) * enchantMaxStats[i] +
+        jewelsLeft * jewelMaxStats[i] +
+        modifiersLeft * modifierMaxStats[i]
       )
-        return -1;
+      return -1;
     } else if (
       minStats[i] - build.stats[i] >
       enchantsLeft * enchantMaxStats[i] +
-        jewelsLeft * jewelMaxStats[i] +
-        modifiersLeft * modifierMaxStats[i]
+      jewelsLeft * jewelMaxStats[i] +
+      modifiersLeft * modifierMaxStats[i]
     )
-      return -1;
+    return -1;
     statsLeft -=
-      (Math.max(minStats[i] - build.stats[i], 0) * Ratio[0]) / Ratio[i];
+    (Math.max(minStats[i] - build.stats[i], 0) * Ratio[0]) / Ratio[i];
   }
   return statsLeft;
 }
@@ -439,12 +445,12 @@ export function getExtraTotalStats(build: Build) {
 // Returns the total number of stats, normalized to power, in the build
 export function getPowerEquivalence(build: Build) {
   return (
-    build.stats.reduce((acc, val, i) => acc + val / Ratio[i], 0) * Ratio[0]
+    build.stats.reduce((acc, val, i) => acc + val / Ratio[i], 0) * Ratio[2]
   );
 }
 
 // Turn stats into their efficiency points using ratios
-export function normalizeStats(stats: number[]) {
+export function getNormalizedStats(stats: number[]) {
   return stats
     .map((val, i) => val / Ratio[i])
     .reduce((acc, val) => acc + val, 0);
@@ -554,14 +560,14 @@ async function getInfo(fileName: string) {
     if (category == "Jewel") {
       const jewel = new BaseArmor(name, stats);
       Jewels.push(jewel);
-      jewelMax = Math.max(jewelMax, normalizeStats(stats));
+      jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
       for (let i = 0; i < 6; i++)
         jewelMaxStats[i] = Math.max(jewelMaxStats[i], stats[i]);
     }
     else if (category == "Enchant") {
       const enchant = new BaseArmor(name, stats);
       Enchants.push(enchant);
-      enchantMax = Math.max(enchantMax, normalizeStats(stats));
+      enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
       for (let i = 0; i < 6; i++)
         enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
     }
@@ -569,7 +575,7 @@ async function getInfo(fileName: string) {
       const modifier = new BaseArmor(name, stats);
       Modifiers.push(modifier);
       if (name != "Atlantean") {
-        modifierMax = Math.max(modifierMax, normalizeStats(stats));
+        modifierMax = Math.max(modifierMax, getNormalizedStats(stats));
         for (let i = 0; i < 6; i++)
           modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
       }
@@ -689,8 +695,8 @@ export function solve() {
     for (let i = 0; i < 5; i++) {
       for (const armorBuild of builds) {
         if (!armorBuild.armorList[i].canMod) modifierSet.add(armorBuild);
-        for (const j in Armors[7]) {
-          const modifier = Armors[7][j];
+        for (const j in Modifiers) {
+          const modifier = Modifiers[j];
           if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
             continue;
           if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
