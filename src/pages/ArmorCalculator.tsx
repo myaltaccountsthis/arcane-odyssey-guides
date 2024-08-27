@@ -49,10 +49,14 @@ function ArmorCalculator() {
     const [useSunken, setUseSunken] = useState(true);
     const [useModifier, setUseModifier] = useState(true);
     const [useAmulet, setUseAmulet] = useState(true);
+    const [useExoticEnchants, setUseExoticEnchants] = useState(true);
+    const [useExoticJewels, setUseExoticJewels] = useState(true);
     const restrictions = [
         { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, setValue: setUseSunken },
         { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, setValue: setUseModifier },
         { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, setValue: setUseAmulet },
+        { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, setValue: setUseExoticEnchants },
+        { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, setValue: setUseExoticJewels }
     ];
 
     // Options
@@ -94,10 +98,10 @@ function ArmorCalculator() {
     // Weights
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
-    const [sizeWeight, setSizeWeight] = useState(30);
+    const [sizeWeight, setSizeWeight] = useState(25);
     const [intensityWeight, setIntensityWeight] = useState(20);
-    const [speedWeight, setSpeedWeight] = useState(40);
-    const [agilityWeight, setAgilityWeight] = useState(30);
+    const [speedWeight, setSpeedWeight] = useState(50);
+    const [agilityWeight, setAgilityWeight] = useState(40);
     const [regenerationWeight, setRegenerationWeight] = useState(10);
     const [resistanceWeight, setResistanceWeight] = useState(10);
     const [armorPiercingWeight, setArmorPiercingWeight] = useState(10);
@@ -117,7 +121,7 @@ function ArmorCalculator() {
     const [loading, setLoading] = useState(false);
     const update = () => {
         setLoading(true);
-        updateInputs(decimals, vit, useAmulet, useSunken, useModifier, insanity, maxDrawbacks, warding,
+        updateInputs(decimals, vit, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
             [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
             [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
         );

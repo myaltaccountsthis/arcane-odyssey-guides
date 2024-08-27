@@ -67,6 +67,8 @@ let vit = 0;
 let useAmulet = true;
 let useSunken = true;
 let useModifier = true;
+let useExoticEnchants = true;
+let useExoticJewels = true;
 let insanity = 0;
 let drawback = 0;
 let warding = 0;
@@ -77,12 +79,14 @@ function log(func: Function, ...args: any) {
   func(...args);
 }
 
-export function updateInputs(decimals1: number, vit1: number, useAmulet1: boolean, useSunken1: boolean, useModifier1: boolean, insanity1: number, drawback1: number, warding1: number, minStats1: number[], weights1: number[]) {
+export function updateInputs(decimals1: number, vit1: number, useAmulet1: boolean, useSunken1: boolean, useModifier1: boolean, useExoticEnchants1: boolean, useExoticJewels1: boolean, insanity1: number, drawback1: number, warding1: number, minStats1: number[], weights1: number[]) {
   decimals = decimals1;
   vit = vit1;
   useAmulet = useAmulet1;
   useSunken = useSunken1;
   useModifier = useModifier1;
+  useExoticEnchants = useExoticEnchants1;
+  useExoticJewels = useExoticJewels1;
   insanity = insanity1;
   drawback = drawback1;
   warding = warding1;
@@ -349,7 +353,7 @@ export function getBaseMult(build: Build, useWeight = false) {
     (((vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH) *
       (useWeight ? weights[1] : 1) +
       1) *
-    ((build.stats[0] + BASE_ATTACK) * vitDamage / BASE_ATTACK *
+    ((build.stats[0]) * vitDamage / BASE_ATTACK *
       (useWeight ? weights[0] : 1) +
       1)
   );
@@ -542,6 +546,7 @@ async function getInfo(fileName: string) {
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
     let canMod = false;
+    let invalid = false;
     for (let i = 2; i < words.length; i++) {
       const entry = words[i].split(":");
       const stat = entry[0];
@@ -554,6 +559,29 @@ async function getInfo(fileName: string) {
         canMod = true;
         continue;
       }
+      if (stat == "exotic") {
+        if (category == "Enchant" && !useExoticEnchants) {
+          invalid = true;
+          break;
+        }
+        if (category == "Jewel" && !useExoticJewels) {
+          invalid = true;
+          break;
+        }
+      }
+      if (stat == "amulet") {
+        if (!useAmulet) {
+          invalid = true;
+          break;
+        }
+      }
+      if (stat == "sunken") {
+        if (!useSunken) {
+          invalid = true;
+          break;
+        }
+      }
+      if (invalid) continue;
       stats[StatOrder.indexOf(stat)] = val;
     }
 
