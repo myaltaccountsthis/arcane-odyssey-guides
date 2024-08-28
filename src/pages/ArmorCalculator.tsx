@@ -46,17 +46,19 @@ function ArmorCalculator() {
     }, []);
 
     // Restrictions
+    const [useEfficiencyPoints, setUseEfficiencyPoints] = useState(false);
     const [useSunken, setUseSunken] = useState(true);
     const [useModifier, setUseModifier] = useState(true);
     const [useAmulet, setUseAmulet] = useState(true);
     const [useExoticEnchants, setUseExoticEnchants] = useState(true);
     const [useExoticJewels, setUseExoticJewels] = useState(true);
     const restrictions = [
-        { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, setValue: setUseSunken },
-        { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, setValue: setUseModifier },
-        { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, setValue: setUseAmulet },
-        { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, setValue: setUseExoticEnchants },
-        { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, setValue: setUseExoticJewels }
+        { className: "use-efficiency-points", name: "Maximize Efficiency Points", isChecked: useEfficiencyPoints, onChange: setUseEfficiencyPoints },
+        { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, onChange: setUseSunken },
+        { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, onChange: setUseModifier },
+        { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, onChange: setUseAmulet },
+        { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, onChange: setUseExoticEnchants },
+        { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, onChange: setUseExoticJewels }
     ];
 
     // Options
@@ -99,7 +101,7 @@ function ArmorCalculator() {
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(25);
-    const [intensityWeight, setIntensityWeight] = useState(20);
+    const [intensityWeight, setIntensityWeight] = useState(15);
     const [speedWeight, setSpeedWeight] = useState(50);
     const [agilityWeight, setAgilityWeight] = useState(40);
     const [regenerationWeight, setRegenerationWeight] = useState(10);
@@ -121,12 +123,15 @@ function ArmorCalculator() {
     const [loading, setLoading] = useState(false);
     const update = () => {
         setLoading(true);
-        updateInputs(decimals, vit, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
+        updateInputs(decimals, vit, useEfficiencyPoints, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
             [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
             [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
         );
         setBuilds(solve());
         setLoading(false);
+    }
+    const clear = () => {
+        setBuilds([]);
     }
 
     const getSettings: () => {[key: string]: any} = () => {
@@ -205,8 +210,10 @@ function ArmorCalculator() {
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
-        <input type="button" onClick={update} value="Update"  />
-        <br />
+        <input type="button" onClick={update} value="Update" />
+        <div className="br-small" />
+        <input type="button" onClick={clear} value="Clear" />
+        <div className="br-small" />
         <div id="armor-list">
             {loading && <div>Loading...</div>}
             {builds.map((build, index) => {

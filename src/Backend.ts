@@ -64,6 +64,7 @@ let calls = 0;
 // Inputs
 let decimals = 2;
 let vit = 0;
+let useEfficiencyPoints = false;
 let useAmulet = true;
 let useSunken = true;
 let useModifier = true;
@@ -79,9 +80,10 @@ function log(func: Function, ...args: any) {
   func(...args);
 }
 
-export function updateInputs(decimals1: number, vit1: number, useAmulet1: boolean, useSunken1: boolean, useModifier1: boolean, useExoticEnchants1: boolean, useExoticJewels1: boolean, insanity1: number, drawback1: number, warding1: number, minStats1: number[], weights1: number[]) {
+export function updateInputs(decimals1: number, vit1: number, useEfficiencyPoints1: boolean, useAmulet1: boolean, useSunken1: boolean, useModifier1: boolean, useExoticEnchants1: boolean, useExoticJewels1: boolean, insanity1: number, drawback1: number, warding1: number, minStats1: number[], weights1: number[]) {
   decimals = decimals1;
   vit = vit1;
+  useEfficiencyPoints = useEfficiencyPoints1;
   useAmulet = useAmulet1;
   useSunken = useSunken1;
   useModifier = useModifier1;
@@ -155,12 +157,12 @@ export class Armor extends BaseArmor {
     if (this.modifier) {
       if (this.modifier.name == "Atlantean") {
         let i = 0;
-        for (; i < 6; i++) {
+        for (; i < NUM_STATS; i++) {
           if (stats[i] == 0) break;
         }
-        i %= 6;
+        i %= NUM_STATS;
         stats[i] += this.modifier.stats[i];
-        stats[6] += this.modifier.stats[6];
+        stats[NUM_STATS] += this.modifier.stats[NUM_STATS];
       } else {
         for (const i of this.modifier.nonZeroStats)
           stats[i] += this.modifier.stats[i];
@@ -176,6 +178,7 @@ export class Build {
   jewelSlots: number;
   hash: number;
   multiplier: number;
+  efficiencyPoints: number;
 
   constructor(armorList: Armor[] = [], stats?: number[]) {
     this.armorList = armorList;
@@ -191,6 +194,7 @@ export class Build {
     this.multiplier =
       getMult(this) +
       getExtraTotalStats(this) / ((BASE_ATTACK / Ratio[0] + BASE_HEALTH / Ratio[1]) / 2);
+    this.efficiencyPoints = getNormalizedStats(this.stats);
     // this.statCode = getStatCode(stats);
   }
 
@@ -199,6 +203,7 @@ export class Build {
   }
 
   compare(other: Build) {
+    if (useEfficiencyPoints) return this.efficiencyPoints - other.efficiencyPoints;
     return this.multiplier - other.multiplier;
   }
 
@@ -434,7 +439,7 @@ export function getExtraStats(build: Build) {
     )
     return -1;
     statsLeft -=
-    (Math.max(minStats[i] - build.stats[i], 0) * Ratio[0]) / Ratio[i];
+    Math.max(minStats[i] - build.stats[i], 0) / Ratio[i];
   }
   return statsLeft;
 }
@@ -589,14 +594,14 @@ async function getInfo(fileName: string) {
       const jewel = new BaseArmor(name, stats);
       Jewels.push(jewel);
       jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
-      for (let i = 0; i < 6; i++)
+      for (let i = 0; i < NUM_STATS; i++)
         jewelMaxStats[i] = Math.max(jewelMaxStats[i], stats[i]);
     }
     else if (category == "Enchant") {
       const enchant = new BaseArmor(name, stats);
       Enchants.push(enchant);
       enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
-      for (let i = 0; i < 6; i++)
+      for (let i = 0; i < NUM_STATS; i++)
         enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
     }
     else if (category == "Modifier") {
@@ -604,7 +609,7 @@ async function getInfo(fileName: string) {
       Modifiers.push(modifier);
       if (name != "Atlantean") {
         modifierMax = Math.max(modifierMax, getNormalizedStats(stats));
-        for (let i = 0; i < 6; i++)
+        for (let i = 0; i < NUM_STATS; i++)
           modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
       }
     }

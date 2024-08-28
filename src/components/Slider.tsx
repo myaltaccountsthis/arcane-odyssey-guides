@@ -13,7 +13,7 @@ export interface SliderProps {
 // name is the display name, className is lowercase
 export default function Slider({ className, name, value, min, max, step, onChange }: SliderProps) {
     const onInput = (event: ChangeEvent<HTMLInputElement>) => {
-        onChange(event.target.valueAsNumber);
+        onChange(parseInt(event.target.value));
     };
 
     return (
