@@ -40,6 +40,13 @@ function ArmorCalculator() {
         window.sessionStorage.setItem("showInfo", val ? "true" : "false");
     }
 
+    const updateInputsLocal = () => {
+        updateInputs(decimals, vit, useEfficiencyPoints, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
+            [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
+            [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
+        );
+    }
+
     useEffect(() => {
         if (window.sessionStorage.getItem("showInfo") === "false" && infoVisible)
             toggleInfo();
@@ -101,7 +108,7 @@ function ArmorCalculator() {
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(25);
-    const [intensityWeight, setIntensityWeight] = useState(15);
+    const [intensityWeight, setIntensityWeight] = useState(10);
     const [speedWeight, setSpeedWeight] = useState(50);
     const [agilityWeight, setAgilityWeight] = useState(40);
     const [regenerationWeight, setRegenerationWeight] = useState(10);
@@ -123,10 +130,7 @@ function ArmorCalculator() {
     const [loading, setLoading] = useState(false);
     const update = () => {
         setLoading(true);
-        updateInputs(decimals, vit, useEfficiencyPoints, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
-            [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
-            [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
-        );
+        updateInputsLocal();
         setBuilds(solve());
         setLoading(false);
     }

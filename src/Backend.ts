@@ -57,6 +57,7 @@ const modifierMaxStats = Array(NUM_STATS).fill(0);
 
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 500;
+const FILE_NAME = "info.json";
 
 // Tracking
 let calls = 0;
@@ -104,6 +105,7 @@ export class BaseArmor {
   name: string;
   stats: number[];
   nonZeroStats: number[];
+  attributes: string[] = [];
 
   constructor(name: string, stats: number[]) {
     this.name = name;
@@ -113,6 +115,44 @@ export class BaseArmor {
 
   public getTotalStats() {
     return this.stats.slice();
+  }
+
+  // Stat functions
+  power() {
+    return this.stats[0];
+  }
+  defense() {
+    return this.stats[1];
+  }
+  size() {
+    return this.stats[2];
+  }
+  intensity() {
+    return this.stats[3];
+  }
+  speed() {
+    return this.stats[4];
+  }
+  agility() {
+    return this.stats[5];
+  }
+  regeneration() {
+    return this.stats[6];
+  }
+  resistance() {
+    return this.stats[7];
+  }
+  armorpiercing() {
+    return this.stats[8];
+  }
+  insanity() {
+    return this.stats[9];
+  }
+  warding() {
+    return this.stats[10];
+  }
+  drawback() {
+    return this.stats[11];
   }
 }
 BaseArmor.prototype.toString = function () {
@@ -271,7 +311,7 @@ export class Build {
     return this.jewelSlots - this.numJewels();
   }
   modifiersLeft() {
-    return this.armorList.map(armor => armor.canMod && armor.modifier ? 1 : 0).reduce((sum: number, val) => sum + val, 0);
+    return this.armorList.map(armor => armor.canMod && !armor.modifier ? 1 : 0).reduce((sum: number, val) => sum + val, 0);
   }
 
   getEnchants() {
@@ -339,7 +379,11 @@ export function getHash(build: Build) {
 // }
 
 export function getMultiplierColorStr(mult: number) {
-  return `hsl(${(mult - 2) * 75}, 100%, 40%)`;
+  return `hsl(${(mult - 2) * 80}, 100%, 40%)`;
+}
+
+export function getEfficiencyPointsColorStr(points: number) {
+  return `hsl(${(points - 600) / 4}, 100%, 40%)`;
 }
 
 export function getFormattedMultiplierStr(
@@ -347,6 +391,13 @@ export function getFormattedMultiplierStr(
 ) {
   const tens = 10 ** decimals;
   return `${Math.floor(mult)}.${(Math.floor(mult * tens) % tens)
+    .toString()
+    .padStart(decimals, "0")}`;
+}
+
+export function getFormattedEfficiencyPointsStr(points: number) {
+  const tens = 10 ** decimals;
+  return `${Math.floor(points)}.${(Math.floor(points * tens) % tens)
     .toString()
     .padStart(decimals, "0")}`;
 }
@@ -533,10 +584,6 @@ export function calculateStats(armorList: Armor[]) {
 
 // Load data from info file into Armors. Must be called before solve()
 async function getInfo(fileName: string) {
-  for (const arr of Armors) arr.length = 0;
-  Enchants.length = 0;
-  Jewels.length = 0;
-  Modifiers.length = 0;
   enchantMax = 0;
   jewelMax = 0;
   modifierMax = 0;
@@ -551,7 +598,7 @@ async function getInfo(fileName: string) {
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
     let canMod = false;
-    let invalid = false;
+    const attributes: string[] = [];
     for (let i = 2; i < words.length; i++) {
       const entry = words[i].split(":");
       const stat = entry[0];
@@ -564,34 +611,16 @@ async function getInfo(fileName: string) {
         canMod = true;
         continue;
       }
-      if (stat == "exotic") {
-        if (category == "Enchant" && !useExoticEnchants) {
-          invalid = true;
-          break;
-        }
-        if (category == "Jewel" && !useExoticJewels) {
-          invalid = true;
-          break;
-        }
+      if (stat == "exotic" || stat == "amulet" || stat == "sunken") {
+        attributes.push(stat);
+        continue;
       }
-      if (stat == "amulet") {
-        if (!useAmulet) {
-          invalid = true;
-          break;
-        }
-      }
-      if (stat == "sunken") {
-        if (!useSunken) {
-          invalid = true;
-          break;
-        }
-      }
-      if (invalid) continue;
       stats[StatOrder.indexOf(stat)] = val;
     }
 
     if (category == "Jewel") {
       const jewel = new BaseArmor(name, stats);
+      jewel.attributes = attributes;
       Jewels.push(jewel);
       jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
       for (let i = 0; i < NUM_STATS; i++)
@@ -599,6 +628,7 @@ async function getInfo(fileName: string) {
     }
     else if (category == "Enchant") {
       const enchant = new BaseArmor(name, stats);
+      enchant.attributes = attributes;
       Enchants.push(enchant);
       enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
       for (let i = 0; i < NUM_STATS; i++)
@@ -606,6 +636,7 @@ async function getInfo(fileName: string) {
     }
     else if (category == "Modifier") {
       const modifier = new BaseArmor(name, stats);
+      modifier.attributes = attributes;
       Modifiers.push(modifier);
       if (name != "Atlantean") {
         modifierMax = Math.max(modifierMax, getNormalizedStats(stats));
@@ -616,13 +647,44 @@ async function getInfo(fileName: string) {
     else {
       const index = Order.indexOf(category);
       const armor = new Armor(name, stats, jewels, canMod);
+      armor.attributes = attributes;
       Armors[index].push(armor);
     }
   }
 }
 
+function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: BaseArmor[], modifierArr: BaseArmor[]) {
+  for (let i = 0; i < 5; i++) {
+    for (const armor of Armors[i]) {
+      if (armor.drawback() > drawback) continue;
+      if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
+      armorArr[i].push(armor);
+    }
+  }
+  if (!useAmulet) Armors[0] = [];
+  for (const enchant of Enchants) {
+    if (enchant.warding() > warding) continue;
+    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
+    enchantArr.push(enchant);
+  }
+  for (const jewel of Jewels) {
+    if (jewel.drawback() > drawback) continue;
+    if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
+    jewelArr.push(jewel);
+  }
+  for (const modifier of Modifiers) {
+    if (modifier.insanity() > insanity) continue;
+    modifierArr.push(modifier);
+  }
+}
+
 // The main function. Returns an array of the top 100 builds
 export function solve() {
+  const armorArr: Armor[][] = [[], [], [], [], []];
+  const enchantArr: BaseArmor[] = [];
+  const jewelArr: BaseArmor[] = [];
+  const modifierArr: BaseArmor[] = [];
+  filterArmor(armorArr, enchantArr, jewelArr, modifierArr);
   // tracking vars
   let validArmor = 0,
     actualArmor = 0,
@@ -648,24 +710,14 @@ export function solve() {
   // let minArmorStats = minStats.map((val, i) => Math.max(val - Armors[4][i].stats[i] * 5 - (useJewels ? Armors[6][i].stats[i] * 10 : 0), 0));
   const armorSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   log(console.time, "solveArmor");
-  for (const armor of Armors[3]) {
-    if (drawback < 1 && armor.name.startsWith("Vatrachos")) continue;
-    if (!useSunken && armor.name.startsWith("Sunken")) continue;
-
-    for (const boot of Armors[2]) {
-      if (drawback < 1 && boot.name.startsWith("Vatrachos")) continue;
-      if (!useSunken && boot.name.startsWith("Sunken")) continue;
-
-      for (let i = 0; i < Armors[1].length; i++) {
-        const accessory1 = Armors[1][i];
+  for (const armor of armorArr[3]) {
+    for (const boot of armorArr[2]) {
+      for (let i = 0; i < armorArr[1].length; i++) {
+        const accessory1 = armorArr[1][i];
         // Make accessory2 array (helmets)
-        const helmets = Armors[4].filter(
-          (helmet) =>
-            (useSunken || !helmet.name.startsWith("Sunken")) &&
-            (drawback >= 1 || !helmet.name.startsWith("Vatrachos"))
-        );
+        const helmets = armorArr[4];
         const length = helmets.length;
-        const accessories2 = helmets.concat(Armors[1].slice(i + 1));
+        const accessories2 = helmets.concat(armorArr[1].slice(i + 1));
 
         for (let j = 0; j < accessories2.length; j++) {
           const accessory2 = accessories2[j];
@@ -673,7 +725,7 @@ export function solve() {
           // If accessory2 is a helmet (j < length), allow only other accessories, otherwise allow accessories after j
           const accessories3 = (
             j < length ? accessories2.slice(length) : accessories2.slice(j + 1)
-          ).concat(useAmulet ? Armors[0] : []);
+          ).concat(useAmulet ? armorArr[0] : []);
 
           for (const accessory3 of accessories3) {
             const armorList = [
@@ -691,7 +743,7 @@ export function solve() {
                   armor.canMod
                 )
             );
-            const armorStats = Array(NUM_STATS + 3).fill(0);
+            const armorStats = Array(StatOrder.length).fill(0);
             for (const item of armorList) {
               for (const k of item.nonZeroStats) armorStats[k] += item.stats[k];
             }
@@ -728,16 +780,11 @@ export function solve() {
     for (let i = 0; i < 5; i++) {
       for (const armorBuild of builds) {
         if (!armorBuild.armorList[i].canMod) modifierSet.add(armorBuild);
-        for (const j in Modifiers) {
-          const modifier = Modifiers[j];
+        for (const modifier of modifierArr) {
           if (modifier.name == "Atlantean" && armorBuild.insanity() >= insanity)
             continue;
           if (!armorBuild.armorList[i].canMod && modifier.name != "Atlantean")
             continue;
-          const stats = armorBuild.stats.slice();
-          for (const k of modifier.nonZeroStats) {
-            stats[k] += modifier.stats[k];
-          }
           const armorList = duplicateArmorList(armorBuild.armorList);
           armorList[i].modifier = modifier;
           const build = new Build(armorList);
@@ -766,7 +813,8 @@ export function solve() {
   }
 
   console.log(builds[0]);
-  log(console.timeEnd, "solveModifier");
+  if (useModifier)
+    log(console.timeEnd, "solveModifier");
   const enchantSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   log(console.time, "solveEnchant");
   // Get best builds with enchants
@@ -800,8 +848,7 @@ export function solve() {
           }
         }
         */
-      for (const j in Enchants) {
-        const enchant = Enchants[j];
+      for (const enchant of enchantArr) {
         if (armorBuild.warding() == warding && enchant.name == "Virtuous")
           continue;
         if (
@@ -881,17 +928,13 @@ export function solve() {
           }
         }
         */
-      for (const j in Jewels) {
-        const jewel = Jewels[j];
+      for (const j in jewelArr) {
+        const jewel = jewelArr[j];
         if (
           drawback - enchantBuild.drawback() < 10 - i &&
           jewel.name == "Painite"
         )
           continue;
-        const stats = enchantBuild.stats.slice();
-        for (const k of jewel.nonZeroStats) {
-          stats[k] += jewel.stats[k];
-        }
 
         const armorList = duplicateArmorList(enchantBuild.armorList);
 
@@ -960,4 +1003,4 @@ function purge(builds: Build[], SIZE = ARMOR_SIZE) {
   return builds.sort((a, b) => b.compare(a)).slice(0, SIZE);
 }
 
-getInfo("info.json");
+getInfo(FILE_NAME);
