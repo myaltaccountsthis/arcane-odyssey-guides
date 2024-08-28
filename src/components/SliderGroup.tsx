@@ -6,8 +6,8 @@ interface SliderGroupProps {
 }
 
 export default function SliderGroup({ title, sliders }: SliderGroupProps) {
-    return <div>
-        <div className="big">{title}</div>
+    return <div className="slider-group">
+        <div className="big w-fit m-auto">{title}</div>
         {
             sliders.map(slider => <Slider key={slider.className} {...slider} />)
         }

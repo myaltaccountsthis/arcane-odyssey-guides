@@ -20,7 +20,7 @@ interface Props {
 
 export default function Stat({ index, value } : Props) {
     if (value == 0) return null;
-    return <>
+    return <span className="">
         <span className={StatName[index]}>{value}</span><img className="icon" src={"./armor/" + StatName[index] + "_icon.png"} />
-    </>
+    </span>
 }

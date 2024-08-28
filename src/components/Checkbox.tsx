@@ -14,7 +14,8 @@ export default function Checkbox({ className, name, isChecked, onChange }: Check
 
     return <div>
         <label htmlFor={className}>{name}</label>
+        <span> </span>
         <input id={className} name={className} type="checkbox" checked={isChecked} onChange={onInput} />
-        <span></span>
+        <span />
     </div>
 }

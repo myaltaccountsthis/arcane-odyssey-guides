@@ -16,12 +16,15 @@ export default function CopyPasteSettings(props: CopyPasteSettingsProps) {
 
     // on settings changed (pasted or modified)
     function pasteSettings(event: ChangeEvent<HTMLInputElement>) {
+        setIsEditing(false);
         const str = event.target.value;
         const settings: {[key: string]: any} = {};
         props.settingsStr.split(";").forEach(setting => settings[setting.split(":")[0]] = JSON.parse(setting.split(":")[1]));
         str.split(";").forEach(setting => {
             try {
                 const [key, value] = setting.split(":");
+                if (settings[key] === undefined)
+                    throw key;
                 settings[key] = JSON.parse(value);
             }
             catch (e) {
@@ -40,7 +43,8 @@ export default function CopyPasteSettings(props: CopyPasteSettingsProps) {
 
     return <div>
         <div>Copy Paste Settings</div>
-        <input className="input-text !w-[40%] min-w-[300px] max-w-[1200px]" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
+        <input className="input-text !w-[40%] min-w-[300px] max-w-[1200px] p-2" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
+        <span> </span>
         <input style={{backgroundColor: isCopying ? "lightgreen" : ""}} type="button" onClick={copySettings} value="Copy" />
     </div>
 }

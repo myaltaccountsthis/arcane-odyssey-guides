@@ -7,6 +7,7 @@ import DropDown from "../components/DropDown";
 import { Build, solve, updateInputs } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
 import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
+import TextDropDown from "../components/TextDropdown.tsx";
 
 // Stat order: power defense size intensity speed agility
 
@@ -126,17 +127,25 @@ function ArmorCalculator() {
         { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
     ];
     
-    const [builds, setBuilds]= useState<Build[]>([]);
+    const [builds, setBuilds] = useState<Build[]>([]);
     const [loading, setLoading] = useState(false);
     const update = () => {
         setLoading(true);
-        updateInputsLocal();
-        setBuilds(solve());
-        setLoading(false);
+        setBuilds([])
     }
     const clear = () => {
         setBuilds([]);
     }
+
+    useEffect(() => {
+        if (loading) {
+            setTimeout(() => {
+                updateInputsLocal();
+                setBuilds(solve());
+                setLoading(false);
+            }, 50)
+        }
+    }, [loading]);
 
     const getSettings: () => {[key: string]: any} = () => {
         return {
@@ -194,23 +203,20 @@ function ArmorCalculator() {
             <div className="br-small"></div>
             <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
             <div className="br-small"></div>
-            <div><a href="index.html">More Guides</a></div>
+            <div><a href="/">More Guides</a></div>
         </div>
         <br />
-        <div>
-            <button id="filter-list-button" className="toggle" onClick={() => setInfoVisible(!infoVisible)}>{infoVisible ? "Hide Filters" : "Show Filters"}</button>
-            {infoVisible &&
-                <div>
-                    <CheckboxGroup title="Restrictions" checkboxes={restrictions}/>
-                    <br />
-                    <SliderGroup title="Options" sliders={options}/>
-                    <br />
-                    <SliderGroup title="Mins" sliders={mins} />
-                    <br />
-                    <SliderGroup title="Weights" sliders={weights} />
-                </div>
-            }
-        </div>
+        <DropDown title="Filters" buttonClassName="!w-[120px] !max-w-[120px]">
+            <div className="flex flex-row flex-wrap justify-center w-fit m-auto gap-y-4">
+                <CheckboxGroup title="Restrictions" checkboxes={restrictions}/>
+                <br />
+                <SliderGroup title="Options" sliders={options}/>
+                <br />
+                <SliderGroup title="Mins" sliders={mins} />
+                <br />
+                <SliderGroup title="Weights" sliders={weights} />
+            </div>
+        </DropDown>
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
@@ -226,10 +232,11 @@ function ArmorCalculator() {
         </div>
         <br />
         <div id="drop-downs">
-            <DropDown title="More Info" lines={definition} boldLines={moreInfo}/>
+            <TextDropDown title="More Info" lines={definition} boldLines={moreInfo}/>
             <br />
-            <DropDown title="Tips" lines={tips}/>
+            <TextDropDown title="Tips" lines={tips}/>
         </div>
+        <div className="h-20" />
     </div>
 }
 

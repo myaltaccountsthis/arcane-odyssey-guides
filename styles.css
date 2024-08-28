@@ -12,9 +12,24 @@ iframe {
 }
 
 .input-text {
-  border-width: 2px;
-  border-radius: 4px;
   width: 48px;
+}
+
+input[type=button], input[type=text], button {
+  border: 2px solid black;
+  border-radius: 6px;
+}
+input[type=button], button {
+  background-color: #eee;
+  transition: background-color 50ms ease-in-out;
+  padding: 4px 8px;
+}
+input[type=button]:hover, button:hover {
+  background-color: #ddd;
+  cursor: pointer;
+}
+input[type=button]:active, button:active {
+  background-color: #ccc;
 }
 
 .slider {
@@ -24,7 +39,7 @@ iframe {
   margin: 2px auto;
 }
 .slider > span, .slider > label {
-  flex: 1 1 50px;
+  flex: 0 1 150px;
 }
 .slider > span {
   text-align: left;
@@ -140,7 +155,7 @@ h1 {
   font-size: larger;
 }
 
-.flex {
+.flexbox {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -151,11 +166,11 @@ h1 {
   max-width: 300px;
 }
 
-.flex * {
+.flexbox * {
   text-align: center;
 }
 
-.flex > div {
+.flexbox > div {
   min-width: 150px;
 }
 
@@ -168,43 +183,49 @@ line {
   stroke-width: 3px;
 }
 
-button {
-  margin: 10px 0px;
-  padding: 0px;
-  border: 0;
-  background-color: transparent;
-  /* font-size: medium; */
-}
 button#visibility-button {
   font-size: large;
 }
 
 button.toggle {
   padding: 4px 6px;
-  border: 1px black solid;
-  background-color: whitesmoke;
-}
-
-button.toggle:hover {
-  background-color: lightgray;
-}
-
-button.toggle:active {
-  background-color: darkgray;
 }
 
 button:hover {
   cursor: pointer;
 }
 
+.checkbox-group, .slider-group {
+  flex: 0 1 100%;
+  width: min-content;
+}
+
+.drop-button {
+  padding: 8px;
+  width: 50%;
+  max-width: 800px;
+}
+
+.dropdown-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms ease-out
+}
+.dropdown-wrapper.dropdown-active {
+  grid-template-rows: 1fr;
+}
+.dropdown-content {
+  overflow: hidden;
+}
+
 @media (min-width: 601px) {
-  .flex {
+  .flexbox {
     width: 50%;
   }
 }
 
 @media (min-width: 721px) {
-  .flex {
+  .flexbox {
     width: 40%;
   }
   
@@ -219,6 +240,10 @@ button:hover {
 @media (min-width: 1081px) {
   #armor-list > * {
     width: calc(33.3% - 6.67px);
+  }
+
+  .checkbox-group, .slider-group {
+    flex: 0 1 40%;
   }
 }
 

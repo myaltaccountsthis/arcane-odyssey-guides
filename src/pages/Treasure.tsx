@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import DropDown from "../components/DropDown";
 
 const directionNames = ["East", "East Southeast", "Southeast", "South Southeast", "South", "South Southwest", "Southwest", "West Southwest", "West", "West Northwest", "Northwest", "North Northwest", "North", "North Northeast", "Northeast", "East Northeast"];
 const distanceNames = ["Few paces", "Halfway", "On the edge"];
@@ -12,16 +13,16 @@ const islandNames = [
 const RADIUS = 256;
 
 function SVGArrowLeft(props: {onClick: () => void}) {
-    return <button onClick={props.onClick}>
-        <svg width={25} height={25} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
+    return <button className="border-none bg-transparent" onClick={props.onClick}>
+        <svg className="align-middle p-1 pl-0" width={24} height={24} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
             <path d="M 75 5 L 25 50 L 75 95" />
         </svg>
     </button>
 }
 
 function SVGArrowRight(props: {onClick: () => void}) {
-    return <button onClick={props.onClick}>
-        <svg width={25} height={25} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
+    return <button className="border-none bg-transparent" onClick={props.onClick}>
+        <svg className="align-middle p-1 pr-0" width={24} height={24} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
             <path d="M 25 5 L 75 50 L 25 95" />
         </svg>
     </button>
@@ -94,36 +95,37 @@ export default function Treasure() {
                 </script>
             </Helmet>
         </HelmetProvider>
-        <button id="visibility-button" className="toggle" onClick={toggleInfo}>{infoVisible ? "Hide Info" : "Show Info"}</button>
-        <br/>
-        <div id="info" style={{display: infoVisible ? "" : "none"}}>
-            <div>
-                Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discord.gg/3GARqj2" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
-            </div>
-            <div><b>Treasure is determined by each part (block of land)</b></div>
-            <div>You only have to dig in each individual part once to check</div>
-            <div>Zoom in (ctrl+ or ctrl scrollwheel) to enlarge the map</div>
-            <div><b>This list does not include very small islands</b></div>
-            <div>Some maps may be slightly off, please dm me on discord</div>
-            <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
-            <div className="br-small" />
-            <div><a href="/">More Guides</a></div>
-        </div>
+        <br />
+        <DropDown title="Info" buttonClassName="!w-[120px] !m-w-[120px]">
+            <>
+                <div>
+                    Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discord.gg/3GARqj2" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
+                </div>
+                <div><b>Treasure is determined by each part (block of land)</b></div>
+                <div>You only have to dig in each individual part once to check</div>
+                <div>Zoom in (ctrl+ or ctrl scrollwheel) to enlarge the map</div>
+                <div><b>This list does not include very small islands</b></div>
+                <div>Some maps may be slightly off, please dm me on discord</div>
+                <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
+                <div className="br-small" />
+                <div><a href="/">More Guides</a></div>
+            </>
+        </DropDown>
         <br/>
         <div>
-            <div className="flex">
+            <div className="flexbox">
                 <SVGArrowLeft onClick={directionLeft} />
-                <div id="direction" className="flex-auto">{directionNames[directionIndex]}</div>
+                <div id="direction" className="flexbox-auto">{directionNames[directionIndex]}</div>
                 <SVGArrowRight onClick={directionRight} />
             </div>
-            <div className="flex">
+            <div className="flexbox">
                 <SVGArrowLeft onClick={distanceLeft} />
-                <div id="distance" className="flex-auto">{distanceNames[distanceIndex]}</div>
+                <div id="distance" className="flexbox-auto">{distanceNames[distanceIndex]}</div>
                 <SVGArrowRight onClick={distanceRight} />
             </div>
-            <div className="flex">
+            <div className="flexbox">
                 <SVGArrowLeft onClick={islandLeft} />
-                <div id="island" className="flex-auto">{islandNames[islandIndex]}</div>
+                <div id="island" className="flexbox-auto">{islandNames[islandIndex]}</div>
                 <SVGArrowRight onClick={islandRight} />
             </div>
         </div>
