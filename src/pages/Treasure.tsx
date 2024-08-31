@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import DropDown from "../components/DropDown";
+import BrSmall from "../components/brsmall";
+import Heading from "../components/Heading";
+import LeftRightControls from "../components/LeftRightControls";
 
 const directionNames = ["East", "East Southeast", "Southeast", "South Southeast", "South", "South Southwest", "Southwest", "West Southwest", "West", "West Northwest", "Northwest", "North Northwest", "North", "North Northeast", "Northeast", "East Northeast"];
 const distanceNames = ["Few paces", "Halfway", "On the edge"];
@@ -11,22 +14,6 @@ const islandNames = [
 // "Thorin's Refuge", "Limestone Key", "Akursius Keep", "Silverhold"
 ];
 const RADIUS = 256;
-
-function SVGArrowLeft(props: {onClick: () => void}) {
-    return <button className="border-none bg-transparent" onClick={props.onClick}>
-        <svg className="align-middle p-1 pl-0" width={24} height={24} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M 75 5 L 25 50 L 75 95" />
-        </svg>
-    </button>
-}
-
-function SVGArrowRight(props: {onClick: () => void}) {
-    return <button className="border-none bg-transparent" onClick={props.onClick}>
-        <svg className="align-middle p-1 pr-0" width={24} height={24} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M 25 5 L 75 50 L 25 95" />
-        </svg>
-    </button>
-}
 
 // angle goes clockwise starting from the x-axis
 function get2DComponents(angle: number, radius: number) {
@@ -79,7 +66,7 @@ export default function Treasure() {
     }, []);
 
     return <div>
-        <h1>Arcane Odyssey Treasure Chart Locator</h1>
+        <Heading>Arcane Odyssey Treasure Chart Locator</Heading>
         <HelmetProvider>
             <Helmet>
                 {/* Google tag (gtag.js) */}
@@ -107,27 +94,15 @@ export default function Treasure() {
                 <div><b>This list does not include very small islands</b></div>
                 <div>Some maps may be slightly off, please dm me on discord</div>
                 <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
-                <div className="br-small" />
+                <BrSmall />
                 <div><a href="/">More Guides</a></div>
             </>
         </DropDown>
         <br/>
         <div>
-            <div className="flexbox">
-                <SVGArrowLeft onClick={directionLeft} />
-                <div id="direction" className="flexbox-auto">{directionNames[directionIndex]}</div>
-                <SVGArrowRight onClick={directionRight} />
-            </div>
-            <div className="flexbox">
-                <SVGArrowLeft onClick={distanceLeft} />
-                <div id="distance" className="flexbox-auto">{distanceNames[distanceIndex]}</div>
-                <SVGArrowRight onClick={distanceRight} />
-            </div>
-            <div className="flexbox">
-                <SVGArrowLeft onClick={islandLeft} />
-                <div id="island" className="flexbox-auto">{islandNames[islandIndex]}</div>
-                <SVGArrowRight onClick={islandRight} />
-            </div>
+            <LeftRightControls onLeft={directionLeft} onRight={directionRight}>{directionNames[directionIndex]}</LeftRightControls>
+            <LeftRightControls onLeft={distanceLeft} onRight={distanceRight}>{distanceNames[distanceIndex]}</LeftRightControls>
+            <LeftRightControls onLeft={islandLeft} onRight={islandRight}>{islandNames[islandIndex]}</LeftRightControls>
         </div>
         <br/>
         <div>

@@ -1,5 +1,6 @@
 import { ChangeEvent, useRef, useState } from "react";
 import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes";
+import Button from "./Button";
 
 interface CopyPasteSettingsProps {
     settingsStr: string;
@@ -43,8 +44,8 @@ export default function CopyPasteSettings(props: CopyPasteSettingsProps) {
 
     return <div>
         <div>Copy Paste Settings</div>
-        <input className="input-text !w-[40%] min-w-[300px] max-w-[1200px] p-2" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
+        <input className="border-2 border-black border-solid rounded-md !w-[40%] min-w-[300px] max-w-[1200px] p-[6px]" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
         <span> </span>
-        <input style={{backgroundColor: isCopying ? "lightgreen" : ""}} type="button" onClick={copySettings} value="Copy" />
+        <Button className={isCopying ? "!bg-green-400" : ""} onClick={copySettings}>Copy</Button>
     </div>
 }

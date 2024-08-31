@@ -8,6 +8,9 @@ import { Build, solve, updateInputs } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
 import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
 import TextDropDown from "../components/TextDropdown.tsx";
+import Button from "../components/Button.tsx";
+import BrSmall from "../components/brsmall.tsx";
+import Heading from "../components/Heading.tsx";
 
 // Stat order: power defense size intensity speed agility
 
@@ -194,15 +197,15 @@ function ArmorCalculator() {
                 </script>
             </Helmet>
         </HelmetProvider>
-        <h1>Arcane Odyssey Armor Build</h1>
-        <div className="br-small"></div>
+        <Heading>Arcane Odyssey Armor Build</Heading>
+        <BrSmall />
         <div id="info">
             <div>
                 Made by <b>myaltaccountsthis</b> (<a target="_blank" href="https://www.discord.gg/3GARqj2" title="myaltaccountsthis">Discord</a> | <a target="_blank" href="https://www.youtube.com/myaltaccountsthis" title="myaltaccountsthis">YouTube</a>)
             </div>
-            <div className="br-small"></div>
+            <BrSmall />
             <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
-            <div className="br-small"></div>
+            <BrSmall />
             <div><a href="/">More Guides</a></div>
         </div>
         <br />
@@ -220,11 +223,11 @@ function ArmorCalculator() {
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
-        <input type="button" onClick={update} value="Update" />
-        <div className="br-small" />
-        <input type="button" onClick={clear} value="Clear" />
-        <div className="br-small" />
-        <div id="armor-list">
+        <Button onClick={update}>Update</Button>
+        <BrSmall />
+        <Button onClick={clear}>Clear</Button>
+        <BrSmall />
+        <div className="flex flex-row flex-wrap justify-center gap-[10px] m-auto w-[90%]">
             {loading && <div>Loading...</div>}
             {builds.map((build, index) => {
                 return <BuildComponent key={index} build={build} />

@@ -17,10 +17,10 @@ export default function Slider({ className, name, value, min, max, step, onChang
     };
 
     return (
-        <div className="slider">
-            <label>{name}</label>
+        <div className="flex justify-center gap-x-2 mx-auto my-[2px]">
+            <label className="grow-0 shrink basis-[150px] text-right">{name}</label>
             <input id={className} onInput={onInput} name={className} type="range" min={min} max={max} step={step} value={value} />
-            <span><input className="input-text" id={`${className}-text`} onInput={onInput} type="text" value={value} /></span>
+            <span className="grow-0 shrink basis-[150px] text-left"><input className="border-2 border-black border-solid rounded-md w-12" id={`${className}-text`} onInput={onInput} type="text" value={value} /></span>
         </div>
     );
 }
