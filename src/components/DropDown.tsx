@@ -1,6 +1,6 @@
 import {useState} from "react";
 import Button from "./Button";
-import BrSmall from "./brsmall";
+import BrSmall from "./BrSmall";
 
 interface Props {
     title: string;

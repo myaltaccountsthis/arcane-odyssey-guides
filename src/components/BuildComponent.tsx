@@ -1,7 +1,7 @@
 import ArmorComponent from "./ArmorComponent";
 import { Build, StatOrder, statToIndex, getFormattedMultiplierStr, getBaseMult, getMultiplierColorStr, getNormalizedStats, getEfficiencyPointsColorStr, getFormattedEfficiencyPointsStr } from "../Backend.ts";
 import Stat from "./Stat.tsx";
-import BrSmall from "./brsmall.tsx";
+import BrSmall from "./BrSmall.tsx";
 
 interface Props {
     build: Build;

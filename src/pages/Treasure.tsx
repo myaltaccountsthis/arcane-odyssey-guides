@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import DropDown from "../components/DropDown";
-import BrSmall from "../components/brsmall";
+import BrSmall from "../components/BrSmall";
 import Heading from "../components/Heading";
 import LeftRightControls from "../components/LeftRightControls";
 

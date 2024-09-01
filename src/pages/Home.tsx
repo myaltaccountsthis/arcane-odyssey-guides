@@ -1,4 +1,4 @@
-import BrSmall from "../components/brsmall"
+import BrSmall from "../components/BrSmall"
 import Heading from "../components/Heading"
 import VerticalList from "../components/VerticalList"
 

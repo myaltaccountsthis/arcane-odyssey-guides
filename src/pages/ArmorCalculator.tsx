@@ -9,7 +9,7 @@ import BuildComponent from "../components/BuildComponent.tsx";
 import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
 import TextDropDown from "../components/TextDropdown.tsx";
 import Button from "../components/Button.tsx";
-import BrSmall from "../components/brsmall.tsx";
+import BrSmall from "../components/BrSmall.tsx";
 import Heading from "../components/Heading.tsx";
 
 // Stat order: power defense size intensity speed agility

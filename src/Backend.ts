@@ -110,7 +110,7 @@ export class BaseArmor {
   constructor(name: string, stats: number[]) {
     this.name = name;
     this.stats = stats;
-    this.nonZeroStats = stats.map((val, i) => i).filter((i) => stats[i] > 0);
+    this.nonZeroStats = stats.map((_, i) => i).filter((i) => stats[i] > 0);
   }
 
   public getTotalStats() {
