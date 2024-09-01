@@ -1,32 +1,43 @@
 // Custom set (hashmap implementation)
 
-class Entry {
-  constructor(key) {
+class Entry<T> {
+  key: T;
+  next: Entry<T> | null;
+
+  constructor(key: T) {
     this.key = key;
     this.next = null;
   }
 }
 
-export class CustomSet {
-  constructor(hashFunction, equalsFunction) {
+class CustomSet<T> {
+  hashFunction: (key: T) => number;
+  equalsFunction: (a: T, b: T) => boolean;
+  entries: (Entry<T> | null)[];
+  size: number;
+
+  constructor(
+    hashFunction: (key: T) => number,
+    equalsFunction: (a: T, b: T) => boolean
+  ) {
     this.hashFunction = hashFunction;
     this.equalsFunction = equalsFunction;
     // we are dealing with hundreds of thousands of builds
     this.entries = new Array(1000);
     this.size = 0;
+    this.clear();
   }
 
-  hash(key) {
+  hash(key: T) {
     return this.hashFunction(key) % this.entries.length;
   }
 
-  add(key) {
+  add(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     if (entry == null) {
       this.entries[hash] = new Entry(key);
-    }
-    else {
+    } else {
       while (entry.next != null && !this.equalsFunction(entry.key, key)) {
         entry = entry.next;
       }
@@ -39,7 +50,13 @@ export class CustomSet {
     return true;
   }
 
-  contains(key) {
+  addAll(arr: T[]) {
+    for (const key of arr) {
+      this.add(key);
+    }
+  }
+
+  contains(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     while (entry != null) {
@@ -51,7 +68,7 @@ export class CustomSet {
     return false;
   }
 
-  remove(key) {
+  remove(key: T) {
     const hash = this.hashFunction(key);
     let entry = this.entries[hash];
     if (entry == null) {
@@ -59,8 +76,7 @@ export class CustomSet {
     }
     if (this.equalsFunction(entry.key, key)) {
       this.entries[hash] = entry.next;
-    }
-    else {
+    } else {
       while (entry.next != null && !this.equalsFunction(entry.next.key, key)) {
         entry = entry.next;
       }
@@ -71,6 +87,11 @@ export class CustomSet {
     }
     this.size--;
     return true;
+  }
+
+  clear() {
+    this.entries = new Array(1000);
+    this.size = 0;
   }
 
   toList() {
@@ -85,3 +106,5 @@ export class CustomSet {
     return list;
   }
 }
+
+export default CustomSet;
