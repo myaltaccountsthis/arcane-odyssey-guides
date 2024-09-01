@@ -24,12 +24,10 @@ export default function DropDown({ title, children, buttonClassName }: Props) {
                     }
                 </svg>
             </Button>
-            <BrSmall />
-            <div className={`rounded-md m-auto w-7/12 max-w-[900px] px-4 grid transition-[grid-template-rows] dropdown-wrapper ${active ? "grid-rows-[1fr] border-2 border-black border-solid" : "grid-rows-[0fr]"}`}>
+            <BrSmall />            
+            <div className={`rounded-md m-auto w-fit grid transition-all duration-300 border-2 border-black border-solid ${active ? "p-6 grid-rows-[1fr] border-opacity-100" : "grid-rows-[0fr] border-opacity-0"}`}>
                 <div className="overflow-hidden">
-                    <br />
                     {children}
-                    <br />
                 </div>
             </div>
             {/* {active && 

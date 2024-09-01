@@ -8,7 +8,7 @@ interface SVGArrowDirectionProps {
 }
 
 export function SVGArrow({ onClick, children }: SVGArrowProps) {
-    return <button className="border-2 p-0 bg-transparent hover:cursor-pointer hover:border-opacity-90 rounded-full border-solid border-black border-opacity-0 transition-[border]" onClick={onClick}>
+    return <button className="border-2 p-0 bg-transparent hover:bg-gray-50 hover:cursor-pointer hover:border-gray-600 hover:shadow rounded-full border-solid border-transparent active:border-black border-opacity-0 transition-all duration-100 active:bg-gray-200 active:border-opacity-100" onClick={onClick}>
         <svg className="align-middle p-2" width={24} height={24} viewBox="0 0 100 100" fill="#0000" stroke="#000" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round">
             {children}
         </svg>

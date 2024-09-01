@@ -39,13 +39,14 @@ export default function CopyPasteSettings(props: CopyPasteSettingsProps) {
     function copySettings() {
         navigator.clipboard.writeText(settingsStr);
         clearTimeout(copyTimeout.current);
-        copyTimeout.current = setTimeout(() => { setIsEditing(false); setIsCopying(false); }, 200);
+        setIsCopying(true);
+        copyTimeout.current = setTimeout(() => { setIsEditing(false); setIsCopying(false); }, 300);
     }
 
     return <div>
         <div>Copy Paste Settings</div>
-        <input className="border-2 border-black border-solid rounded-md !w-[40%] min-w-[300px] max-w-[1200px] p-[6px]" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
+        <input className="border-2 border-black border-solid rounded-md !w-[40%] min-w-[300px] max-w-[1200px] p-[6px] hover:bg-gray-50 focus:bg-transparent transition-colors" style={{fontFamily: "Consolas, 'Courier New'"}} id="copy-paste" type="text" value={settingsStr} onChange={(e) => setSettingsStr(e.target.value)} onFocus={() => setIsEditing(true)} onBlur={pasteSettings} />
         <span> </span>
-        <Button className={isCopying ? "!bg-green-400" : ""} onClick={copySettings}>Copy</Button>
+        <Button className={`${isCopying ? "!bg-green-300" : ""}`} onClick={copySettings}>{isCopying ? "Copied!" : "Copy"}</Button>
     </div>
 }

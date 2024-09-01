@@ -210,13 +210,10 @@ function ArmorCalculator() {
         </div>
         <br />
         <DropDown title="Filters" buttonClassName="!w-[120px] !max-w-[120px]">
-            <div className="flex flex-row flex-wrap justify-center w-fit m-auto gap-y-4">
+            <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
                 <CheckboxGroup title="Restrictions" checkboxes={restrictions}/>
-                <br />
                 <SliderGroup title="Options" sliders={options}/>
-                <br />
                 <SliderGroup title="Mins" sliders={mins} />
-                <br />
                 <SliderGroup title="Weights" sliders={weights} />
             </div>
         </DropDown>
