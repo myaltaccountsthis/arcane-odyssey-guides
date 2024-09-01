@@ -1,5 +1,6 @@
 import {useState} from "react";
 import Button from "./Button";
+import BrSmall from "./brsmall";
 
 interface Props {
     title: string;
@@ -23,7 +24,8 @@ export default function DropDown({ title, children, buttonClassName }: Props) {
                     }
                 </svg>
             </Button>
-            <div className={`grid transition-[grid-template-rows] dropdown-wrapper ${active ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+            <BrSmall />
+            <div className={`rounded-md m-auto w-7/12 max-w-[900px] px-4 grid transition-[grid-template-rows] dropdown-wrapper ${active ? "grid-rows-[1fr] border-2 border-black border-solid" : "grid-rows-[0fr]"}`}>
                 <div className="overflow-hidden">
                     <br />
                     {children}
