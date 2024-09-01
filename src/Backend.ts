@@ -587,7 +587,7 @@ async function getInfo(fileName: string) {
   enchantMax = 0;
   jewelMax = 0;
   modifierMax = 0;
-  const info = await fetch("../armor/" + fileName).then((response) =>
+  const info = await fetch("./armor/" + fileName).then((response) =>
     response.json()
   );
   for (const line of info) {
@@ -770,7 +770,6 @@ export function solve() {
     }
   }
   let builds = purge(armorSet.toList());
-  console.log(builds[0]);
   purgesArmor++;
   log(console.timeEnd, "solveArmor");
 
@@ -812,7 +811,6 @@ export function solve() {
     }
   }
 
-  console.log(builds[0]);
   if (useModifier)
     log(console.timeEnd, "solveModifier");
   const enchantSet = new CustomSet<Build>(getHash, Build.prototype.equals);
@@ -890,7 +888,7 @@ export function solve() {
     enchantSet.clear();
     purgesEnchant++;
   }
-  console.log(builds[0]);
+  
   log(console.timeEnd, "solveEnchant");
   const jewelSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   log(console.time, "solveJewels");
@@ -972,7 +970,7 @@ export function solve() {
     jewelSet.clear();
     purgesJewel++;
   }
-  console.log(builds[0]);
+  
   log(console.timeEnd, "solveJewels");
 
   log(

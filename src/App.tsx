@@ -18,7 +18,7 @@ function App() {
             path: "/armor",
             element: <ArmorCalculator />
         }
-    ]);
+    ], {basename: "/arcane-odyssey-guides/"});
 
     return <>
         <RouterProvider router={routes} />
