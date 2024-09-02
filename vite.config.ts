@@ -19,7 +19,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-        "styles.css": "./styles.css"
+        "styles.css": "./styles.css",
+        "./treasure": "../../assets",
+        "./armor": "../assets"
     }
   }
 })

@@ -24,14 +24,17 @@ export default function Treasure() {
     const [directionIndex, setDirectionIndex] = useState(0);
     const [distanceIndex, setDistanceIndex] = useState(0);
     const [islandIndex, setIslandIndex] = useState(0);
-    const [imageSrc, setImageSrc] = useState(`treasure/${islandNames[islandIndex]}.png`);
+    const [imageSrc, setImageSrc] = useState("");
     const [infoVisible, setInfoVisible] = useState(true);
 
+    const updateImageSrc = () => {
+        setImageSrc(`./treasure/${islandNames[islandIndex]}.png`);
+    }
     useEffect(() => {
         window.sessionStorage.setItem("direction", directionIndex.toString());
         window.sessionStorage.setItem("distance", distanceIndex.toString());
         window.sessionStorage.setItem("island", islandIndex.toString());
-        setImageSrc(`treasure/${islandNames[islandIndex]}.png`);
+        updateImageSrc();
     }, [directionIndex, distanceIndex, islandIndex]);
     
     const angle = Math.PI * directionIndex / 8;
@@ -95,7 +98,7 @@ export default function Treasure() {
                 <div>Some maps may be slightly off, please dm me on discord</div>
                 <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
                 <BrSmall />
-                <div><a href="/">More Guides</a></div>
+                <div><a href="../">More Guides</a></div>
             </>
         </DropDown>
         <br/>

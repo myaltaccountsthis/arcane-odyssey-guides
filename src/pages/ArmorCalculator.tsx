@@ -206,7 +206,7 @@ function ArmorCalculator() {
             <BrSmall />
             <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
             <BrSmall />
-            <div><a href="/">More Guides</a></div>
+            <div><a href="../">More Guides</a></div>
         </div>
         <br />
         <DropDown title="Filters" buttonClassName="!w-[120px] !max-w-[120px]">
