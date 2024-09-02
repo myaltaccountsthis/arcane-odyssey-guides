@@ -1,1 +1,0 @@
-export type ArmorCalculatorSettings = {[key: string]: any};
