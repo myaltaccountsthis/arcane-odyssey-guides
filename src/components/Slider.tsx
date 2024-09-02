@@ -25,7 +25,7 @@ export default function Slider({ className, name, value, min, max, step, onChang
         setIsEditing(false);
     }
     const onInput = (event: ChangeEvent<HTMLInputElement>) => {
-        setVal(parseInt(event.target.value));
+        setVal(parseInt(event.target.value) || 0);
     };
 
     return (
