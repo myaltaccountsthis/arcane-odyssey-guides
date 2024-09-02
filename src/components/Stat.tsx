@@ -1,3 +1,5 @@
+import paths from "../PathStuff";
+
 enum StatName {
     "power",
     "defense",
@@ -21,6 +23,6 @@ interface Props {
 export default function Stat({ index, value } : Props) {
     if (value == 0) return null;
     return <span className="">
-        <span className={StatName[index]}>{value}</span><img className="w-6 h-6 mb-1 align-middle" src={"./armor/" + StatName[index] + "_icon.png"} />
+        <span className={StatName[index]}>{value}</span><img className="w-6 h-6 mb-1 align-middle" src={`${paths.armor}${StatName[index]}_icon.png`} />
     </span>
 }

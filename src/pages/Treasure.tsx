@@ -4,6 +4,7 @@ import DropDown from "../components/DropDown";
 import BrSmall from "../components/BrSmall";
 import Heading from "../components/Heading";
 import LeftRightControls from "../components/LeftRightControls";
+import paths from "../PathStuff";
 
 const directionNames = ["East", "East Southeast", "Southeast", "South Southeast", "South", "South Southwest", "Southwest", "West Southwest", "West", "West Northwest", "Northwest", "North Northwest", "North", "North Northeast", "Northeast", "East Northeast"];
 const distanceNames = ["Few paces", "Halfway", "On the edge"];
@@ -28,8 +29,7 @@ export default function Treasure() {
     const [infoVisible, setInfoVisible] = useState(true);
 
     const updateImageSrc = () => {
-        const path = (window.location.hostname == "myaltaccountsthis.github.io") ? "../treasure/" : "./treasure/";
-        setImageSrc(`${path}${islandNames[islandIndex]}.png`);
+        setImageSrc(`${paths.treasure}${islandNames[islandIndex]}.png`);
     }
     useEffect(() => {
         window.sessionStorage.setItem("direction", directionIndex.toString());

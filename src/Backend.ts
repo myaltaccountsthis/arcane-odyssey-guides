@@ -1,4 +1,5 @@
 import CustomSet from "./CustomSet";
+import paths from "./PathStuff";
 
 export const Order = [
   "Amulet",
@@ -587,8 +588,7 @@ async function getInfo(fileName: string) {
   enchantMax = 0;
   jewelMax = 0;
   modifierMax = 0;
-  const path = (window.location.hostname == "myaltaccountsthis.github.io") ? "../armor/" : "./armor/";
-  const info = await fetch(path + fileName).then((response) =>
+  const info = await fetch(paths.armor + fileName).then((response) =>
     response.json()
   );
   for (const line of info) {
