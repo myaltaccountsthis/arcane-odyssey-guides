@@ -16,5 +16,10 @@ export default defineConfig({
         treasure: path.resolve(__dirname, "treasure/index.html"),
       }
     }
+  },
+  resolve: {
+    alias: {
+        "styles.css": "./styles.css"
+    }
   }
 })

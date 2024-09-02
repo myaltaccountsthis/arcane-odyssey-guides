@@ -18,5 +18,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "path.d.ts"],
+  "include": ["vite.config.ts", "path.d.ts", "armor/index.html", "treasure/index.html"],
 }  
