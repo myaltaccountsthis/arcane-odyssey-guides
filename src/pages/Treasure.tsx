@@ -28,7 +28,8 @@ export default function Treasure() {
     const [infoVisible, setInfoVisible] = useState(true);
 
     const updateImageSrc = () => {
-        setImageSrc(`./treasure/${islandNames[islandIndex]}.png`);
+        const path = (window.location.hostname == "myaltaccountsthis.github.io") ? "../treasure/" : "./treasure/";
+        setImageSrc(`${path}${islandNames[islandIndex]}.png`);
     }
     useEffect(() => {
         window.sessionStorage.setItem("direction", directionIndex.toString());

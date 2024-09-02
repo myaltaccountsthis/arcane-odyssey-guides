@@ -587,7 +587,8 @@ async function getInfo(fileName: string) {
   enchantMax = 0;
   jewelMax = 0;
   modifierMax = 0;
-  const info = await fetch("./armor/" + fileName).then((response) =>
+  const path = (window.location.hostname == "myaltaccountsthis.github.io") ? "../armor/" : "./armor/";
+  const info = await fetch(path + fileName).then((response) =>
     response.json()
   );
   for (const line of info) {
@@ -1001,4 +1002,5 @@ function purge(builds: Build[], SIZE = ARMOR_SIZE) {
   return builds.sort((a, b) => b.compare(a)).slice(0, SIZE);
 }
 
-getInfo(FILE_NAME);
+if (window.location.href.includes("/armor"))
+  getInfo(FILE_NAME);
