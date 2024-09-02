@@ -594,7 +594,7 @@ async function getInfo(fileName: string) {
   for (const line of info) {
     const words = line.split(" ");
     const category = words[0];
-    const name = words[1];
+    const name = words[1].replaceAll("_", " ");
     // Stats contains all tokens
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
