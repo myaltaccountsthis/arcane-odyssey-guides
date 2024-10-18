@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 * {
-  font-family: Comic Sans MS, Arial, Helvetica, sans-serif;
+  font-family: Comic Sans MS, sans-serif;
   text-align: center;
   font-size: large;
 }

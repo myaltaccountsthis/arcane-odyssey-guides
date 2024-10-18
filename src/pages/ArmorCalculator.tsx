@@ -142,11 +142,15 @@ function ArmorCalculator() {
 
     useEffect(() => {
         if (loading) {
-            setTimeout(() => {
-                updateInputsLocal();
-                setBuilds(solve());
+            updateInputsLocal();
+            const worker = new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' });
+
+            worker.onmessage = (event) => {
+                setBuilds(event.data);
                 setLoading(false);
-            }, 50)
+            };
+
+            worker.postMessage("start");
         }
     }, [loading]);
 
