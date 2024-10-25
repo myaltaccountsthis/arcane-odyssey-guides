@@ -426,13 +426,13 @@ export function getMult(build: Build) {
 // secondary stats multiplier
 export function otherMult(build: Build) {
   return (
-    ((estimateMultComplex(build.stats[2]) - 1) * weights[2] * 0.68 + 1) *
-    ((estimateMultComplex(build.stats[3]) - 1) * weights[3] + 1) *
-    ((estimateMultComplex(build.stats[4]) - 1) * weights[4] * 0.4 + 1) *
-    ((estimateMultComplex(build.stats[5]) - 1) * weights[5] * 0.5 + 1) *
-    ((estimateMultComplex(build.stats[6]) - 1) * weights[6] + 1) *
-    ((estimateMultComplex(build.stats[7]) - 1) * weights[7] + 1) *
-    ((estimateMultComplex(build.stats[8]) - 1) * weights[8] + 1)
+    ((estimateMultComplex(build.size()) - 1) * weights[2] * 0.68 + 1) *
+    ((estimateMultComplex(build.intensity()) - 1) * weights[3] + 1) *
+    ((estimateMultComplex(build.speed()) - 1) * weights[4] * 0.4 + 1) *
+    ((estimateMultComplex(build.agility()) - 1) * weights[5] * 0.5 + 1) *
+    ((estimateMultComplex(build.regeneration()) - 1) * weights[6] + 1) *
+    ((estimateMultComplex(build.resistance()) - 1) * weights[7] + 1) *
+    ((estimateMultComplex(build.armorpiercing()) - 1) * weights[8] + 1)
   );
 }
 
