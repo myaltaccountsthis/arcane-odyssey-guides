@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HelmetProvider, Helmet } from "react-helmet-async";
 import CheckboxGroup from "../components/CheckboxGroup";
 import SliderGroup from "../components/SliderGroup";
 import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
-import { Build, solve, updateInputs } from "../Backend.ts";
+import { Build, updateInputs } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
-import { ArmorCalculatorSettings } from "../types/ArmorCalculatorTypes.ts";
+import { ArmorCalculatorSettings, EventData } from "../types/ArmorCalculatorTypes.ts";
 import TextDropDown from "../components/TextDropdown.tsx";
 import Button from "../components/Button.tsx";
 import BrSmall from "../components/BrSmall.tsx";
 import Heading from "../components/Heading.tsx";
+import paths from "../PathStuff.ts";
+import { ArmorCalculatorInput } from "../types/ArmorCalculatorTypes.ts";
 
 // Stat order: power defense size intensity speed agility
 
@@ -31,29 +33,47 @@ const tips = [
     "Secondary stat curve is based on Metapoly's real formulas",
     "Base Multiplier only considers pow/def raw multiplier",
     "Jewels and Enchants can be swapped around unless Atlantean",
-    "Takes about 2000ms",
+    "Takes about 2000ms (formerly), now it probably takes 6000ms LMAO",
     "Solver runs faster with more restrictions"
-]
+];
 
 function ArmorCalculator() {
     const [infoVisible, setInfoVisible] = useState(true);
+    const [loaded, setLoaded] = useState(false);
+    const infoRef = useRef<Object>();
+    const info = infoRef.current;
+    const workerRef = useRef<Worker>(new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' }));
+    const worker = workerRef.current;
 
     const toggleInfo = () => {
         const val = !infoVisible
         setInfoVisible(val);
         window.sessionStorage.setItem("showInfo", val ? "true" : "false");
-    }
-
-    const updateInputsLocal = () => {
-        updateInputs(decimals, vit, useEfficiencyPoints, useAmulet, useSunken, useModifier, useExoticEnchants, useExoticJewels, insanity, maxDrawbacks, warding,
-            [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
-            [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
-        );
-    }
+    };
 
     useEffect(() => {
         if (window.sessionStorage.getItem("showInfo") === "false" && infoVisible)
             toggleInfo();
+        
+        (async () => {
+            infoRef.current = await fetch(paths.armorFile).then(res => res.json());
+            worker.postMessage({
+                type: "init",
+                body: infoRef.current
+            });
+            setLoaded(true);
+        })();
+
+        worker.onmessage = (event) => {
+            const data = event.data as EventData;
+            if (data.type == "init") {
+                setLoaded(true);
+            }
+            else if (data.type == "solve") {
+                setBuilds(data.body);
+                setLoading(false);
+            }
+        };
     }, []);
 
     // Restrictions
@@ -62,14 +82,14 @@ function ArmorCalculator() {
     const [useModifier, setUseModifier] = useState(true);
     const [useAmulet, setUseAmulet] = useState(true);
     const [useExoticEnchants, setUseExoticEnchants] = useState(true);
-    const [useExoticJewels, setUseExoticJewels] = useState(true);
+    // const [useExoticJewels, setUseExoticJewels] = useState(true);
     const restrictions = [
         { className: "use-efficiency-points", name: "Maximize Efficiency Points", isChecked: useEfficiencyPoints, onChange: setUseEfficiencyPoints },
         { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, onChange: setUseSunken },
         { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, onChange: setUseModifier },
         { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, onChange: setUseAmulet },
         { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, onChange: setUseExoticEnchants },
-        { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, onChange: setUseExoticJewels }
+        // { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, onChange: setUseExoticJewels }
     ];
 
     // Options
@@ -78,12 +98,14 @@ function ArmorCalculator() {
     const [insanity, setInsanity] = useState(0);
     const [warding, setWarding] = useState(0);
     const [maxDrawbacks, setMaxDrawbacks] = useState(0);
+    const [fightDuration, setFightDuration] = useState(60);
     const options = [
         { className: "vit", name: "Vitality", value: vit, min: 0, max: 250, step: 1, onChange: setVit },
         { className: "decimals", name: "Decimals", value: decimals, min: 1, max: 5, step: 1, onChange: setDecimals },
         { className: "insanity", name: "Insanity", value: insanity, min: 0, max: 5, step: 1, onChange: setInsanity },
         { className: "warding", name: "Warding", value: warding, min: 0, max: 5, step: 1, onChange: setWarding },
         { className: "drawback", name: "Max Drawback", value: maxDrawbacks, min: 0, max: 20, step: 1, onChange: setMaxDrawbacks },
+        { className: "fight-duration", name: "Fight Duration", value: fightDuration, min: 0, max: 600, step: 1, onChange: setFightDuration },
     ];
     
     // Mins
@@ -111,11 +133,11 @@ function ArmorCalculator() {
     // Weights
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
-    const [sizeWeight, setSizeWeight] = useState(25);
-    const [intensityWeight, setIntensityWeight] = useState(10);
+    const [sizeWeight, setSizeWeight] = useState(30);
+    const [intensityWeight, setIntensityWeight] = useState(25);
     const [speedWeight, setSpeedWeight] = useState(50);
     const [agilityWeight, setAgilityWeight] = useState(40);
-    const [regenerationWeight, setRegenerationWeight] = useState(10);
+    const [regenerationWeight, setRegenerationWeight] = useState(100);
     const [resistanceWeight, setResistanceWeight] = useState(10);
     const [armorPiercingWeight, setArmorPiercingWeight] = useState(10);
     const weights = [
@@ -130,27 +152,46 @@ function ArmorCalculator() {
         { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
     ];
     
+    // Convert frontend inputs to backend format
+    const convertInputFormat = (): ArmorCalculatorInput => {
+        return {
+            decimals: decimals,
+            vit: vit,
+            useEfficiencyPoints: useEfficiencyPoints,
+            useSunken: useSunken,
+            useModifier: useModifier,
+            useAmulet: useAmulet,
+            useExoticEnchants: useExoticEnchants,
+            // useExoticJewels: useExoticJewels,
+            insanity: insanity,
+            drawback: maxDrawbacks,
+            warding: warding,
+            fightDuration: fightDuration,
+            minStats: [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
+            weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
+        }
+    };
+    
     const [builds, setBuilds] = useState<Build[]>([]);
     const [loading, setLoading] = useState(false);
     const update = () => {
+        if (!loaded) return;
         setLoading(true);
-        setBuilds([])
+        setBuilds([]);
     }
     const clear = () => {
         setBuilds([]);
     }
-
+    
     useEffect(() => {
         if (loading) {
-            updateInputsLocal();
-            const worker = new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' });
-
-            worker.onmessage = (event) => {
-                setBuilds(event.data);
-                setLoading(false);
-            };
-
-            worker.postMessage("start");
+            worker.postMessage({
+                type: "config",
+                body: convertInputFormat()
+            });
+            worker.postMessage({
+                type: "solve"
+            });
         }
     }, [loading]);
 

@@ -1,5 +1,5 @@
 import CustomSet from "./CustomSet";
-import paths from "./PathStuff";
+import { ArmorCalculatorInput } from "./types/ArmorCalculatorTypes";
 
 export const Order = [
   "Amulet",
@@ -37,31 +37,40 @@ export const statToIndex: {[key: string]: number} = {
   drawback: 11,
 };
 
+// Them darn normal jewels
+// "Jewel Power power:3",
+// "Jewel Defense defense:31",
+// "Jewel Size size:10",
+// "Jewel Intensity intensity:10",
+// "Jewel Speed speed:10",
+// "Jewel Agility agility:10",
+
 const MAX_LEVEL = 140;
 const BASE_HEALTH = 100 + 7 * (MAX_LEVEL - 1);
 const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
 const HEALTH_PER_VIT = 4;
-const NUM_STATS = 9;
+const REGENERATION_AMOUNT = 0.03375;
+export const NUM_STATS = 9;
 // const MAIN_STATS = StatOrder.slice(0, NUM_STATS);
-const Ratio = [1/3, 11/3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+const Ratio = [1/3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const Armors: Armor[][] = [[], [], [], [], []];
 const Enchants: BaseArmor[] = [];
 const Jewels: BaseArmor[] = [];
-const Modifiers: BaseArmor[] = []; 
+const Modifiers: BaseArmor[] = [];
 
-let enchantMax: number;
-let jewelMax: number;
-let modifierMax: number;
+let enchantMax: number = 0;
+let jewelMax: number = 0;
+let modifierMax: number = 0;
 const enchantMaxStats = Array(NUM_STATS).fill(0);
 const jewelMaxStats = Array(NUM_STATS).fill(0);
 const modifierMaxStats = Array(NUM_STATS).fill(0);
 
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 500;
-const FILE_NAME = "info.json";
 
 // Tracking
 let calls = 0;
+let initialized = false;
 
 // Inputs
 let decimals = 2;
@@ -75,6 +84,7 @@ let useExoticJewels = true;
 let insanity = 0;
 let drawback = 0;
 let warding = 0;
+let fightDuration = 0;
 const minStats = Array(NUM_STATS).fill(0);
 const weights = Array(NUM_STATS).fill(100);
 
@@ -82,23 +92,24 @@ function log(func: Function, ...args: any) {
   func(...args);
 }
 
-export function updateInputs(decimals1: number, vit1: number, useEfficiencyPoints1: boolean, useAmulet1: boolean, useSunken1: boolean, useModifier1: boolean, useExoticEnchants1: boolean, useExoticJewels1: boolean, insanity1: number, drawback1: number, warding1: number, minStats1: number[], weights1: number[]) {
-  decimals = decimals1;
-  vit = vit1;
-  useEfficiencyPoints = useEfficiencyPoints1;
-  useAmulet = useAmulet1;
-  useSunken = useSunken1;
-  useModifier = useModifier1;
-  useExoticEnchants = useExoticEnchants1;
-  useExoticJewels = useExoticJewels1;
-  insanity = insanity1;
-  drawback = drawback1;
-  warding = warding1;
+export function updateInputs(options: ArmorCalculatorInput) {
+  decimals = options.decimals;
+  vit = options.vit;
+  useEfficiencyPoints = options.useEfficiencyPoints;
+  useAmulet = options.useAmulet;
+  useSunken = options.useSunken;
+  useModifier = options.useModifier;
+  useExoticEnchants = options.useExoticEnchants;
+  // useExoticJewels = options.useExoticJewels;
+  insanity = options.insanity;
+  drawback = options.drawback;
+  warding = options.warding;
+  fightDuration = options.fightDuration;
   for (let i = 0; i < minStats.length; i++) {
-    minStats[i] = minStats1[i];
+    minStats[i] = options.minStats[i];
   }
   for (let i = 0; i < weights.length; i++) {
-    weights[i] = weights1[i] / 100;
+    weights[i] = options.weights[i] / 100;
   }
 }
 
@@ -156,8 +167,11 @@ export class BaseArmor {
     return this.stats[11];
   }
 }
+export function armorToString(armor: BaseArmor) {
+  return armor.name;
+}
 BaseArmor.prototype.toString = function () {
-  return this.name;
+  return armorToString(this);
 };
 
 export class Armor extends BaseArmor {
@@ -335,22 +349,12 @@ export class Build {
     return jewels;
   }
 
-  
-
-  // HTML incorporation
-  // value is from (1.7, 2.7)
-  multiplierColorStr() {
-    return getMultiplierColorStr(this.multiplier);
-  }
-
-  asHTML() {
-    return `
-      
-    `;
-  }
+}
+export function buildToString(build: Build) {
+  return `Multiplier: ${(Math.round(build.multiplier * 10000) / 10000)}\nBonus Stats: ${build.stats.join("/")}\nArmor: ${build.armorList.join(" ")}`;
 }
 Build.prototype.toString = function() {
-  return `Multiplier: ${(Math.round(this.multiplier * 10000) / 10000)}\nBonus Stats: ${this.stats.join("/")}\nArmor: ${this.armorList.join(" ")}`;
+  return buildToString(this);
 }
 
 export function isValid(build: Build) {
@@ -405,16 +409,22 @@ export function getFormattedEfficiencyPointsStr(points: number) {
 
 // pow/def, vit multiplier without weight
 export function getBaseMult(build: Build, useWeight = false) {
+  // Damage multiplier due to vit (vitDamage <= 1)
   const vitDamage = Math.sqrt(BASE_HEALTH / (vit * HEALTH_PER_VIT + BASE_HEALTH));
+  const baseFightHP = BASE_HEALTH * (1 + fightDuration * .0075);
+  const totalFightHP = baseFightHP + vit * HEALTH_PER_VIT + build.stats[1] + weights[statToIndex.regeneration] * REGENERATION_AMOUNT * build.stats[statToIndex.regeneration] * fightDuration;
   return (
-    (((vit * HEALTH_PER_VIT + build.stats[1]) / BASE_HEALTH) *
-      (useWeight ? weights[1] : 1) +
+    // Defense, Regeneration, Vitality multiplier
+    ((totalFightHP / baseFightHP) *
+      (useWeight ? weights[statToIndex.defense] : 1) +
       1) *
+    // Power multiplier
     ((build.stats[0]) * vitDamage / BASE_ATTACK *
-      (useWeight ? weights[0] : 1) +
+      (useWeight ? weights[statToIndex.power] : 1) +
       1)
   );
 }
+
 
 // Returns modified multiplier affected by weight
 export function getMult(build: Build) {
@@ -430,7 +440,6 @@ export function otherMult(build: Build) {
     ((estimateMultComplex(build.intensity()) - 1) * weights[3] + 1) *
     ((estimateMultComplex(build.speed()) - 1) * weights[4] * 0.4 + 1) *
     ((estimateMultComplex(build.agility()) - 1) * weights[5] * 0.5 + 1) *
-    ((estimateMultComplex(build.regeneration()) - 1) * weights[6] + 1) *
     ((estimateMultComplex(build.resistance()) - 1) * weights[7] + 1) *
     ((estimateMultComplex(build.armorpiercing()) - 1) * weights[8] + 1)
   );
@@ -583,14 +592,35 @@ export function calculateStats(armorList: Armor[]) {
 //     .map((stats) => new Armor("e", stats));
 // }
 
-// Load data from info file into Armors. Must be called before solve()
-async function getInfo(fileName: string) {
-  enchantMax = 0;
-  jewelMax = 0;
-  modifierMax = 0;
-  const info = await fetch(paths.armor + fileName).then((response) =>
-    response.json()
-  );
+function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: BaseArmor[], modifierArr: BaseArmor[]) {
+  for (let i = 0; i < 5; i++) {
+    for (const armor of Armors[i]) {
+      if (armor.drawback() > drawback) continue;
+      if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
+      armorArr[i].push(armor);
+    }
+  }
+  if (!useAmulet) Armors[0] = [];
+  for (const enchant of Enchants) {
+    if (enchant.warding() > warding) continue;
+    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
+    enchantArr.push(enchant);
+  }
+  for (const jewel of Jewels) {
+    if (jewel.drawback() > drawback) continue;
+    // if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
+    jewelArr.push(jewel);
+  }
+  for (const modifier of Modifiers) {
+    if (modifier.insanity() > insanity) continue;
+    modifierArr.push(modifier);
+  }
+}
+
+// Updates the variables using the given info
+// info: the parsed json file
+export function updateInfo(info: any) {
+  if (initialized) return;
   for (const line of info) {
     const words = line.split(" ");
     const category = words[0];
@@ -652,31 +682,7 @@ async function getInfo(fileName: string) {
       Armors[index].push(armor);
     }
   }
-}
-
-function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: BaseArmor[], modifierArr: BaseArmor[]) {
-  for (let i = 0; i < 5; i++) {
-    for (const armor of Armors[i]) {
-      if (armor.drawback() > drawback) continue;
-      if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
-      armorArr[i].push(armor);
-    }
-  }
-  if (!useAmulet) Armors[0] = [];
-  for (const enchant of Enchants) {
-    if (enchant.warding() > warding) continue;
-    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
-    enchantArr.push(enchant);
-  }
-  for (const jewel of Jewels) {
-    if (jewel.drawback() > drawback) continue;
-    if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
-    jewelArr.push(jewel);
-  }
-  for (const modifier of Modifiers) {
-    if (modifier.insanity() > insanity) continue;
-    modifierArr.push(modifier);
-  }
+  initialized = true;
 }
 
 // The main function. Returns an array of the top 100 builds
@@ -1001,6 +1007,3 @@ export function solve() {
 function purge(builds: Build[], SIZE = ARMOR_SIZE) {
   return builds.sort((a, b) => b.compare(a)).slice(0, SIZE);
 }
-
-if (window.location.href.includes("/armor"))
-  getInfo(FILE_NAME);
