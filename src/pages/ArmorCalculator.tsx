@@ -4,7 +4,7 @@ import CheckboxGroup from "../components/CheckboxGroup";
 import SliderGroup from "../components/SliderGroup";
 import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
-import { Build, updateInputs } from "../Backend.ts";
+import { Build } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
 import { ArmorCalculatorSettings, EventData } from "../types/ArmorCalculatorTypes.ts";
 import TextDropDown from "../components/TextDropdown.tsx";
@@ -41,7 +41,6 @@ function ArmorCalculator() {
     const [infoVisible, setInfoVisible] = useState(true);
     const [loaded, setLoaded] = useState(false);
     const infoRef = useRef<Object>();
-    const info = infoRef.current;
     const workerRef = useRef<Worker>(new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' }));
     const worker = workerRef.current;
 
