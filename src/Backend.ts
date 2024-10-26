@@ -412,10 +412,10 @@ export function getBaseMult(build: Build, useWeight = false) {
   // Damage multiplier due to vit (vitDamage <= 1)
   const vitDamage = Math.sqrt(BASE_HEALTH / (vit * HEALTH_PER_VIT + BASE_HEALTH));
   const baseFightHP = BASE_HEALTH * (1 + fightDuration * .0075);
-  const totalFightHP = baseFightHP + vit * HEALTH_PER_VIT + build.stats[1] + weights[statToIndex.regeneration] * REGENERATION_AMOUNT * build.stats[statToIndex.regeneration] * fightDuration;
+  const extraFightHP = vit * HEALTH_PER_VIT + build.stats[1] + weights[statToIndex.regeneration] * REGENERATION_AMOUNT * build.stats[statToIndex.regeneration] * fightDuration;
   return (
     // Defense, Regeneration, Vitality multiplier
-    ((totalFightHP / baseFightHP) *
+    ((extraFightHP / baseFightHP) *
       (useWeight ? weights[statToIndex.defense] : 1) +
       1) *
     // Power multiplier

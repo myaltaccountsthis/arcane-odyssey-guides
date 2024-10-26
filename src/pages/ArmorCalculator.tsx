@@ -37,6 +37,8 @@ const tips = [
     "Solver runs faster with more restrictions"
 ];
 
+const loadingText = ["Loading", "Loading.", "Loading..", "Loading..."];
+
 function ArmorCalculator() {
     const [infoVisible, setInfoVisible] = useState(true);
     const [loaded, setLoaded] = useState(false);
@@ -134,8 +136,8 @@ function ArmorCalculator() {
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
     const [intensityWeight, setIntensityWeight] = useState(25);
-    const [speedWeight, setSpeedWeight] = useState(50);
-    const [agilityWeight, setAgilityWeight] = useState(40);
+    const [speedWeight, setSpeedWeight] = useState(60);
+    const [agilityWeight, setAgilityWeight] = useState(70);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
     const [resistanceWeight, setResistanceWeight] = useState(10);
     const [armorPiercingWeight, setArmorPiercingWeight] = useState(10);
@@ -173,6 +175,7 @@ function ArmorCalculator() {
     
     const [builds, setBuilds] = useState<Build[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingTextIndex, setLoadingTextIndex] = useState(0);
     const update = () => {
         if (!loaded) return;
         setLoading(true);
@@ -184,6 +187,7 @@ function ArmorCalculator() {
     
     useEffect(() => {
         if (loading) {
+            setLoadingTextIndex((loadingTextIndex + 1) % loadingText.length);
             worker.postMessage({
                 type: "config",
                 body: convertInputFormat()
@@ -193,6 +197,17 @@ function ArmorCalculator() {
             });
         }
     }, [loading]);
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const interval = setInterval(() => {
+            if (loading) {
+                setLoadingTextIndex((loadingTextIndex + 1) % loadingText.length);
+            }
+        }, 300);
+        return () => clearInterval(interval);
+    }, [loadingTextIndex]);
 
     const getSettings: () => {[key: string]: any} = () => {
         return {
@@ -264,12 +279,12 @@ function ArmorCalculator() {
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
-        <Button onClick={update}>Update</Button>
+        {loaded && <Button onClick={update}>Update</Button>}
         <BrSmall />
         <Button onClick={clear}>Clear</Button>
         <BrSmall />
         <div className="flex flex-row flex-wrap justify-center gap-[10px] m-auto w-[90%]">
-            {loading && <div>Loading...</div>}
+            {loading && <div>{loadingText[loadingTextIndex]}</div>}
             {builds.map((build, index) => {
                 return <BuildComponent key={index} build={build} />
             })}
