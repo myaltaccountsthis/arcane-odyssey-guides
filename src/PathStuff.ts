@@ -1,12 +1,14 @@
 const paths = {
-    armor: "./armor/",
-    armorFile: "./armor/info.json",
-    treasure: "./treasure/"
+    armor: "./",
+    armorFile: "./info.json",
+    treasure: "./",
 };
 
-paths.armor = "./";
-paths.armorFile = "./info.json";
-paths.treasure = "./";
+if (window.location.hostname == "localhost") {
+    paths.armor = "./armor/";
+    paths.armorFile = "./armor/info.json";
+    paths.treasure = "./treasure/";
+}
 
 /*
 if (window.location.hostname == "myaltaccountsthis.github.io") {
