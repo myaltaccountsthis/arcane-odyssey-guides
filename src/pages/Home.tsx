@@ -11,13 +11,16 @@ export default function Home() {
         <div><b>Made by myaltaccountsthis</b></div>
         <BrSmall />
         <VerticalList>
-            <div><a href="armor">Armor Builds</a></div>
+            <div><a href="armor">Armor Build Calculator</a></div>
             <div><a href="treasure">Treasure Chart Locator</a></div>
         </VerticalList>
         <br/>
         <div><b>Made by others</b></div>
         <BrSmall />
         <VerticalList>
+            <div>
+                <i>BobbyNooby</i> - <a target="_blank" href="https://tools.arcaneodyssey.net/gearBuilder">Gear Builder</a>
+            </div>
             <div>
                 <i>Storntreat</i> - <a target="_blank" href="https://docs.google.com/presentation/d/1F8-wjkYacgPZFN31cq05TqTsPN3v3X_gzQxA4RDsjGA/edit?usp=sharing">Wanted Criminal Locations</a>
             </div>
