@@ -4,6 +4,10 @@ const paths = {
     treasure: "./treasure/"
 };
 
+paths.armor = "./";
+paths.armorFile = "./info.json";
+paths.treasure = "./";
+
 /*
 if (window.location.hostname == "myaltaccountsthis.github.io") {
     paths.armor = "../armor/";
