@@ -6,8 +6,9 @@ import react from '@vitejs/plugin-react'
 declare const __dirname: string; // Add this line
 
 export default defineConfig({
-  base: "/arcane-odyssey-guides/",
+  // base: "/arcane-odyssey-guides/",
   plugins: [react()],
+  /*
   build: {
     rollupOptions: {
       input: {
@@ -22,4 +23,5 @@ export default defineConfig({
         "styles.css": "./styles.css",
     }
   }
+  */
 })
