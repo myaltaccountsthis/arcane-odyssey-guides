@@ -1,6 +1,5 @@
 export type ArmorCalculatorSettings = {[key: string]: any};
 export type ArmorCalculatorInput = {
-    decimals: number,
     vit: number,
     useEfficiencyPoints: boolean,
     useAmulet: boolean,

@@ -33,7 +33,7 @@ const tips = [
     "Secondary stat curve is based on Metapoly's real formulas",
     "Base Multiplier only considers pow/def raw multiplier",
     "Jewels and Enchants can be swapped around unless Atlantean",
-    "Takes about 2000ms (formerly), now it probably takes 6000ms LMAO",
+    "Takes about 2000ms again",
     "Solver runs faster with more restrictions"
 ];
 
@@ -110,25 +110,25 @@ function ArmorCalculator() {
     ];
     
     // Mins
-    const [minPower, setMinPower] = useState(0);
-    const [minDefense, setMinDefense] = useState(0);
-    const [minSize, setMinSize] = useState(0);
-    const [minIntensity, setMinIntensity] = useState(0);
-    const [minSpeed, setMinSpeed] = useState(0);
-    const [minAgility, setMinAgility] = useState(0);
-    const [minRegeneration, setMinRegeneration] = useState(0);
-    const [minResistance, setMinResistance] = useState(0);
-    const [minArmorPiercing, setMinArmorPiercing] = useState(0);
+    const [minPower, setMinPower] = useState(-1);
+    const [minDefense, setMinDefense] = useState(-1);
+    const [minSize, setMinSize] = useState(-1);
+    const [minIntensity, setMinIntensity] = useState(-1);
+    const [minSpeed, setMinSpeed] = useState(-1);
+    const [minAgility, setMinAgility] = useState(-1);
+    const [minRegeneration, setMinRegeneration] = useState(-1);
+    const [minResistance, setMinResistance] = useState(-1);
+    const [minArmorPiercing, setMinArmorPiercing] = useState(-1);
     const mins = [
-        { className: "min-power", name: "Power", value: minPower, min: 0, max: 350, step: 1, onChange: setMinPower },
-        { className: "min-defense", name: "Defense", value: minDefense, min: 0, max: 3500, step: 1, onChange: setMinDefense },
-        { className: "min-size", name: "Size", value: minSize, min: 0, max: 650, step: 1, onChange: setMinSize },
-        { className: "min-intensity", name: "Intensity", value: minIntensity, min: 0, max: 650, step: 1, onChange: setMinIntensity },
-        { className: "min-speed", name: "Speed", value: minSpeed, min: 0, max: 650, step: 1, onChange: setMinSpeed },
-        { className: "min-agility", name: "Agility", value: minAgility, min: 0, max: 650, step: 1, onChange: setMinAgility },
-        { className: "min-regeneration", name: "Regeneration", value: minRegeneration, min: 0, max: 650, step: 1, onChange: setMinRegeneration },
-        { className: "min-resistance", name: "Resistance", value: minResistance, min: 0, max: 650, step: 1, onChange: setMinResistance },
-        { className: "min-armor-piercing", name: "Armor Piercing", value: minArmorPiercing, min: 0, max: 650, step: 1, onChange: setMinArmorPiercing },
+        { className: "min-power", name: "Power", value: minPower, min: -1, max: 350, step: 1, onChange: setMinPower },
+        { className: "min-defense", name: "Defense", value: minDefense, min: -1, max: 3500, step: 1, onChange: setMinDefense },
+        { className: "min-size", name: "Size", value: minSize, min: -1, max: 650, step: 1, onChange: setMinSize },
+        { className: "min-intensity", name: "Intensity", value: minIntensity, min: -1, max: 650, step: 1, onChange: setMinIntensity },
+        { className: "min-speed", name: "Speed", value: minSpeed, min: -1, max: 650, step: 1, onChange: setMinSpeed },
+        { className: "min-agility", name: "Agility", value: minAgility, min: -1, max: 650, step: 1, onChange: setMinAgility },
+        { className: "min-regeneration", name: "Regeneration", value: minRegeneration, min: -1, max: 650, step: 1, onChange: setMinRegeneration },
+        { className: "min-resistance", name: "Resistance", value: minResistance, min: -1, max: 650, step: 1, onChange: setMinResistance },
+        { className: "min-armor-piercing", name: "Armor Piercing", value: minArmorPiercing, min: -1, max: 650, step: 1, onChange: setMinArmorPiercing },
     ];
 
     // Weights
@@ -137,10 +137,10 @@ function ArmorCalculator() {
     const [sizeWeight, setSizeWeight] = useState(30);
     const [intensityWeight, setIntensityWeight] = useState(25);
     const [speedWeight, setSpeedWeight] = useState(60);
-    const [agilityWeight, setAgilityWeight] = useState(70);
+    const [agilityWeight, setAgilityWeight] = useState(60);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
     const [resistanceWeight, setResistanceWeight] = useState(10);
-    const [armorPiercingWeight, setArmorPiercingWeight] = useState(10);
+    const [armorPiercingWeight, setArmorPiercingWeight] = useState(20);
     const weights = [
         { className: "power-weight", name: "Power", value: powerWeight, min: 0, max: 200, step: 1, onChange: setPowerWeight },
         { className: "defense-weight", name: "Defense", value: defenseWeight, min: 0, max: 200, step: 1, onChange: setDefenseWeight },
@@ -156,7 +156,6 @@ function ArmorCalculator() {
     // Convert frontend inputs to backend format
     const convertInputFormat = (): ArmorCalculatorInput => {
         return {
-            decimals: decimals,
             vit: vit,
             useEfficiencyPoints: useEfficiencyPoints,
             useSunken: useSunken,
@@ -286,7 +285,7 @@ function ArmorCalculator() {
         <div className="flex flex-row flex-wrap justify-center gap-[10px] m-auto w-[90%]">
             {loading && <div>{loadingText[loadingTextIndex]}</div>}
             {builds.map((build, index) => {
-                return <BuildComponent key={index} build={build} />
+                return <BuildComponent key={index} build={build} decimals={decimals} />
             })}
         </div>
         <br />
