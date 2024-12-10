@@ -34,7 +34,7 @@ const tips = [
     "Base Multiplier only considers pow/def raw multiplier",
     "Jewels and Enchants can be swapped around unless Atlantean",
     "Takes about 2000ms again",
-    "Solver runs faster with more restrictions"
+    "Solver should run faster with more restrictions"
 ];
 
 const loadingText = ["Loading", "Loading.", "Loading..", "Loading..."];

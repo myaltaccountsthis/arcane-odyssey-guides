@@ -1,14 +1,16 @@
-import CustomSet from "./CustomSet";
 import TreeSet from "./TreeSet";
 import { ArmorCalculatorInput } from "./types/ArmorCalculatorTypes";
 
 export const Order = [
-  "Amulet",
-  "Accessory",
-  "Boots",
   "Chestplate",
+  "Boots",
+  "Accessory",
   "Helmet",
-];
+  "Amulet",
+]
+const OrderIndex: {[key: string]: number} = {};
+Order.forEach((val, i) => OrderIndex[val] = i);
+
 export const StatOrder = [
   "power",
   "defense",
@@ -59,16 +61,20 @@ const Enchants: BaseArmor[] = [];
 const Jewels: BaseArmor[] = [];
 const Modifiers: BaseArmor[] = [];
 
+let armorMax: number[] = Array(5).fill(0);
 let enchantMax: number = 0;
 let jewelMax: number = 0;
 let modifierMax: number = 0;
+const armorMaxStats: number[][] = Array(5).fill(0).map(() => Array(NUM_STATS).fill(0));
 const enchantMaxStats = Array(NUM_STATS).fill(0);
 const jewelMaxStats = Array(NUM_STATS).fill(0);
 const modifierMaxStats = Array(NUM_STATS).fill(0);
 
 const BUILD_SIZE = 100;
 const ARMOR_SIZE = 500;
-const FILTER_THRESHOLD = 1000;
+const FILTER_THRESHOLD = 10;
+const TOTAL_THRESHOLD = 100000;
+const JEWEL_FILTER_THRESHOLD = 5;
 
 // Tracking
 let calls = 0;
@@ -369,6 +375,8 @@ export function isValid(build: Build) {
   return getExtraStats(build) >= -.05;
 }
 
+// TODO: isValid pruning system for partial build
+
 export function getHash(build: Build) {
   let num = 0;
   const stats = build.stats;
@@ -461,11 +469,21 @@ export function getExtraStats(build: Build) {
   const painites = Math.min(drawback - build.drawback(), jewelsLeft);
   const virtuous = warding - build.warding();
 
+  const extraArmorStats = Array(NUM_STATS).fill(0);
+
   statsLeft +=
     (virtuous * 54) / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
   statsLeft +=
     (painites * 125) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   if (useModifier) statsLeft += modifiersLeft * modifierMax;
+  
+  for (let i = build.armorList.length; i < 5; i++) {
+    for (let j = 0; j < NUM_STATS; j++) {
+      extraArmorStats[j] += armorMaxStats[i][j];
+    }
+    statsLeft += armorMax[i];
+  }
+
   for (let i = 0; i < NUM_STATS; i++) {
     if (i == 1) {
       if (drawback > 0) {
@@ -490,7 +508,8 @@ export function getExtraStats(build: Build) {
       minStats[i] - build.stats[i] >
       enchantsLeft * enchantMaxStats[i] +
       jewelsLeft * jewelMaxStats[i] +
-      modifiersLeft * modifierMaxStats[i]
+      modifiersLeft * modifierMaxStats[i] +
+      extraArmorStats[i]
     )
     return -1;
     statsLeft -=
@@ -503,6 +522,9 @@ export function getExtraTotalStats(build: Build) {
   let val = enchantMax * build.enchantsLeft();
   val += jewelMax * build.jewelsLeft();
   if (useModifier) val += modifierMax * build.modifiersLeft();
+  for (let i = build.armorList.length; i < 5; i++) {
+    val += armorMax[i];
+  }
   return val;
 }
 
@@ -678,11 +700,23 @@ export function updateInfo(info: any) {
       }
     }
     else {
-      const index = Order.indexOf(category);
+      const index = OrderIndex[category];
       const armor = new Armor(name, stats, jewels, canMod);
       armor.attributes = attributes;
       Armors[index].push(armor);
+      armorMax[index] = Math.max(armorMax[index], getNormalizedStats(stats));
+      for (let i = 0; i < NUM_STATS; i++)
+        armorMaxStats[index][i] = Math.max(armorMaxStats[index][i], stats[i]);
     }
+  }
+  const accessoryIndex = OrderIndex.Accessory;
+  const helmetIndex = OrderIndex.Helmet;
+  const amuletIndex = OrderIndex.Amulet;
+  armorMax[helmetIndex] = Math.max(armorMax[helmetIndex], armorMax[accessoryIndex]);
+  armorMax[amuletIndex] = Math.max(armorMax[amuletIndex], armorMax[accessoryIndex]);
+  for (let i = 0; i < NUM_STATS; i++) {
+    armorMaxStats[helmetIndex][i] = Math.max(armorMaxStats[helmetIndex][i], armorMaxStats[accessoryIndex][i]);
+    armorMaxStats[amuletIndex][i] = Math.max(armorMaxStats[amuletIndex][i], armorMaxStats[accessoryIndex][i]);
   }
   initialized = true;
 }
@@ -720,30 +754,42 @@ export function solve() {
   let prevArmorCount = [0, 0, 0, 0, 0];
   // Stores the actual armor count for each armor piece, if actualArmor stays the same, then we can add to count
   let tempActualArmor = [0, 0, 0, 0, 0];
-  for (const armor of armorArr[3]) {
+  let tempValidArmor = [0, 0, 0, 0, 0];
+  for (const armor of armorArr[OrderIndex.Chestplate]) {
     tempActualArmor[0] = actualArmor;
+    tempValidArmor[0] = validArmor;
     prevArmorCount[1] = 0;
-    for (const boot of armorArr[2]) {
+    if (!isValid(new Build([armor]))) continue;
+    for (const boot of armorArr[OrderIndex.Boots]) {
       tempActualArmor[1] = actualArmor;
-      for (let i = 0; i < armorArr[1].length; i++) {
+      tempValidArmor[1] = validArmor;
+      prevArmorCount[2] = 0;
+      if (!isValid(new Build([armor, boot]))) continue;
+      for (let i = 0; i < armorArr[OrderIndex.Accessory].length; i++) {
+        const accessory1 = armorArr[OrderIndex.Accessory][i];
         tempActualArmor[2] = actualArmor;
-        const accessory1 = armorArr[1][i];
+        tempValidArmor[2] = validArmor;
+        if (!isValid(new Build([armor, boot, accessory1]))) continue;
         // Make accessory2 array (helmets)
-        const helmets = armorArr[4];
+        const helmets = armorArr[OrderIndex.Helmet];
         const length = helmets.length;
-        const accessories2 = helmets.concat(armorArr[1].slice(i + 1));
-
+        const accessories2 = helmets.concat(armorArr[OrderIndex.Accessory].slice(i + 1));
+        prevArmorCount[3] = 0;
         for (let j = 0; j < accessories2.length; j++) {
           tempActualArmor[3] = actualArmor;
+          tempValidArmor[3] = validArmor;
           const accessory2 = accessories2[j];
+          if (!isValid(new Build([armor, boot, accessory1, accessory2]))) continue;
           // Make accessory3 array (amulets)
           // If accessory2 is a helmet (j < length), allow only other accessories, otherwise allow accessories after j
           const accessories3 = (
             j < length ? accessories2.slice(length) : accessories2.slice(j + 1)
-          ).concat(useAmulet ? armorArr[0] : []);
+          ).concat(useAmulet ? armorArr[OrderIndex.Amulet] : []);
 
+          prevArmorCount[4] = 0;
           for (const accessory3 of accessories3) {
             tempActualArmor[4] = actualArmor;
+            tempValidArmor[4] = validArmor;
             const armorList = [
               armor,
               boot,
@@ -776,20 +822,20 @@ export function solve() {
                 dupeOrWorseArmor++;
               }
             }
-            if (actualArmor == tempActualArmor[4]) prevArmorCount[4]++;
-            if (prevArmorCount[4] >= FILTER_THRESHOLD) break;
+            if (actualArmor == tempActualArmor[4] && validArmor > tempValidArmor[4]) prevArmorCount[4]++;
+            if (prevArmorCount[4] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
           }
-          if (actualArmor == tempActualArmor[3]) prevArmorCount[3]++;
-          if (prevArmorCount[3] >= FILTER_THRESHOLD) break;
+          if (actualArmor == tempActualArmor[3] && validArmor > tempValidArmor[3]) prevArmorCount[3]++;
+          if (prevArmorCount[3] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
         }
-        if (actualArmor == tempActualArmor[2]) prevArmorCount[2]++;
-        if (prevArmorCount[2] >= FILTER_THRESHOLD) break;
+        if (actualArmor == tempActualArmor[2] && validArmor > tempValidArmor[2]) prevArmorCount[2]++;
+        if (prevArmorCount[2] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
       }
-      if (actualArmor == tempActualArmor[1]) prevArmorCount[1]++;
-      if (prevArmorCount[1] >= FILTER_THRESHOLD) break;
+      if (actualArmor == tempActualArmor[1] && validArmor > tempValidArmor[1]) prevArmorCount[1]++;
+      if (prevArmorCount[1] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
     }
-    if (actualArmor == tempActualArmor[0]) prevArmorCount[0]++;
-    if (prevArmorCount[0] >= FILTER_THRESHOLD) break;
+    if (actualArmor == tempActualArmor[0] && validArmor > tempValidArmor[0]) prevArmorCount[0]++;
+    if (prevArmorCount[0] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
   }
 
   let builds = armorSet.toList();
@@ -878,7 +924,7 @@ export function solve() {
           enchant.name == "Atlantean"
         )
           continue;
-        if (armorBuild.insanity() >= 1 && enchant.name == "Warding")
+        if (armorBuild.armorList[i].modifier != undefined && armorBuild.armorList[i].modifier?.name == "Atlantean" && enchant.name == "Virtuous")
           continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
@@ -907,41 +953,17 @@ export function solve() {
   log(console.timeEnd, "solveEnchant");
   // const jewelSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   const jewelSet = new TreeSet<Build>((a, b) => a.compare(b));
+  let prevJewelCount = 0;
+  let tempActualJewel = actualJewel;
+  let tempValidJewel = validJewel;
   log(console.time, "solveJewels");
   for (let i = 0; i < 10; i++) {
+    prevJewelCount = 0;
     for (const enchantBuild of builds) {
       if (enchantBuild.jewelSlots < 10 - i) {
         jewelSet.add(enchantBuild);
         continue;
       }
-      /*
-        const jewelCombinations = calculateCombinations(includeSecondary ? 6 : 2, enchantBuild.jewelSlots);
-        for (const jewels of jewelCombinations) {
-          const combination = jewels.stats;
-          const stats = enchantBuild.stats.slice();
-          for (const i of jewels.nonZeroStats) {
-            stats[i] += combination[i] * Armors[6][i].stats[i];
-          }
-          const build = new Build(enchantBuild.armorList, vit, stats, enchantBuild.enchants, combination);
-          nJewel++;
-          if (build.isValid()) {
-            validJewel++;
-            if (jewelSet.add(build)) {
-              actualJewel++;
-            }
-            else {
-              dupesJewel++;
-            }
-
-            if (jewelSet.size > ARMOR_SIZE * 10) {
-              const buildArr = purge(jewelSet.toList());
-              jewelSet.clear();
-              jewelSet.addAll(buildArr);
-              purgesJewel++;
-            }
-          }
-        }
-        */
       for (const j in jewelArr) {
         const jewel = jewelArr[j];
         if (
@@ -975,6 +997,8 @@ export function solve() {
             dupesJewel++;
           }
         }
+        if (actualJewel == tempActualJewel && validJewel > tempValidJewel) prevJewelCount++;
+        if (prevJewelCount >= JEWEL_FILTER_THRESHOLD || validJewel > TOTAL_THRESHOLD) break;
       }
     }
     builds = jewelSet.toList();
