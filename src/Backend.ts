@@ -375,8 +375,6 @@ export function isValid(build: Build) {
   return getExtraStats(build) >= -.05;
 }
 
-// TODO: isValid pruning system for partial build
-
 export function getHash(build: Build) {
   let num = 0;
   const stats = build.stats;
