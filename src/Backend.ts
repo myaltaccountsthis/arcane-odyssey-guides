@@ -608,20 +608,38 @@ export function calculateStats(armorList: Armor[]) {
 
 // Filters armors based on set parameters, (sunken, drawkback, warding, insanity, etc), also sort in order of highest multiplier
 function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: BaseArmor[], modifierArr: BaseArmor[]) {
-  for (let i = 0; i < 5; i++) {
-    for (const armor of Armors[i]) {
+  armorMax.fill(0);
+  enchantMax = 0;
+  jewelMax = 0;
+  modifierMax = 0;
+  armorMaxStats.fill(Array(5).fill(0));
+  enchantMaxStats.fill(0);
+  jewelMaxStats.fill(0);
+  modifierMaxStats.fill(0);
+
+  for (let index = 0; index < 5; index++) {
+    if (!useAmulet && index == OrderIndex.Amulet) continue;
+    for (const armor of Armors[index]) {
       if (armor.drawback() > drawback) continue;
       if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
-      armorArr[i].push(armor);
+      armorArr[index].push(armor);
+      const stats = armor.stats;
+      
+      armorMax[index] = Math.max(armorMax[index], getNormalizedStats(stats));
+      for (let i = 0; i < NUM_STATS; i++)
+        armorMaxStats[index][i] = Math.max(armorMaxStats[index][i], stats[i]);
     }
-    armorArr[i].sort((a, b) => getMult(b.stats) - getMult(a.stats));
+    armorArr[index].sort((a, b) => getMult(b.stats) - getMult(a.stats));
   }
 
-  if (!useAmulet) Armors[0] = [];
   for (const enchant of Enchants) {
     if (enchant.warding() > warding) continue;
     if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
     enchantArr.push(enchant);
+    const stats = enchant.stats;
+    enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
+    for (let i = 0; i < NUM_STATS; i++)
+      enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
   }
   enchantArr.sort((a, b) => getMult(b.stats) - getMult(a.stats));
 
@@ -629,14 +647,34 @@ function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: Bas
     if (jewel.drawback() > drawback) continue;
     // if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
     jewelArr.push(jewel);
+    const stats = jewel.stats;
+    jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
+    for (let i = 0; i < NUM_STATS; i++)
+      jewelMaxStats[i] = Math.max(jewelMaxStats[i], stats[i]);
   }
   jewelArr.sort((a, b) => getMult(b.stats) - getMult(a.stats));
 
   for (const modifier of Modifiers) {
     if (modifier.insanity() > insanity) continue;
     modifierArr.push(modifier);
+    if (modifier.name != "Atlantean") {
+      const stats = modifier.stats;
+      modifierMax = Math.max(modifierMax, getNormalizedStats(stats));
+      for (let i = 0; i < NUM_STATS; i++)
+        modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
+    }
   }
   modifierArr.sort((a, b) => getMult(b.stats) - getMult(a.stats));
+
+  const accessoryIndex = OrderIndex.Accessory;
+  const helmetIndex = OrderIndex.Helmet;
+  const amuletIndex = OrderIndex.Amulet;
+  armorMax[helmetIndex] = Math.max(armorMax[helmetIndex], armorMax[accessoryIndex]);
+  armorMax[amuletIndex] = Math.max(armorMax[amuletIndex], armorMax[accessoryIndex]);
+  for (let i = 0; i < NUM_STATS; i++) {
+    armorMaxStats[helmetIndex][i] = Math.max(armorMaxStats[helmetIndex][i], armorMaxStats[accessoryIndex][i]);
+    armorMaxStats[amuletIndex][i] = Math.max(armorMaxStats[amuletIndex][i], armorMaxStats[accessoryIndex][i]);
+  }
 }
 
 // Updates the variables using the given info
@@ -675,46 +713,23 @@ export function updateInfo(info: any) {
       const jewel = new BaseArmor(name, stats);
       jewel.attributes = attributes;
       Jewels.push(jewel);
-      jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
-      for (let i = 0; i < NUM_STATS; i++)
-        jewelMaxStats[i] = Math.max(jewelMaxStats[i], stats[i]);
     }
     else if (category == "Enchant") {
       const enchant = new BaseArmor(name, stats);
       enchant.attributes = attributes;
       Enchants.push(enchant);
-      enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
-      for (let i = 0; i < NUM_STATS; i++)
-        enchantMaxStats[i] = Math.max(enchantMaxStats[i], stats[i]);
     }
     else if (category == "Modifier") {
       const modifier = new BaseArmor(name, stats);
       modifier.attributes = attributes;
       Modifiers.push(modifier);
-      if (name != "Atlantean") {
-        modifierMax = Math.max(modifierMax, getNormalizedStats(stats));
-        for (let i = 0; i < NUM_STATS; i++)
-          modifierMaxStats[i] = Math.max(modifierMaxStats[i], stats[i]);
-      }
     }
     else {
       const index = OrderIndex[category];
       const armor = new Armor(name, stats, jewels, canMod);
       armor.attributes = attributes;
       Armors[index].push(armor);
-      armorMax[index] = Math.max(armorMax[index], getNormalizedStats(stats));
-      for (let i = 0; i < NUM_STATS; i++)
-        armorMaxStats[index][i] = Math.max(armorMaxStats[index][i], stats[i]);
     }
-  }
-  const accessoryIndex = OrderIndex.Accessory;
-  const helmetIndex = OrderIndex.Helmet;
-  const amuletIndex = OrderIndex.Amulet;
-  armorMax[helmetIndex] = Math.max(armorMax[helmetIndex], armorMax[accessoryIndex]);
-  armorMax[amuletIndex] = Math.max(armorMax[amuletIndex], armorMax[accessoryIndex]);
-  for (let i = 0; i < NUM_STATS; i++) {
-    armorMaxStats[helmetIndex][i] = Math.max(armorMaxStats[helmetIndex][i], armorMaxStats[accessoryIndex][i]);
-    armorMaxStats[amuletIndex][i] = Math.max(armorMaxStats[amuletIndex][i], armorMaxStats[accessoryIndex][i]);
   }
   initialized = true;
 }
