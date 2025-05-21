@@ -1,15 +1,9 @@
 import TreeSet from "./TreeSet";
 import { ArmorCalculatorInput } from "./types/ArmorCalculatorTypes";
 
-export const Order = [
-  "Chestplate",
-  "Boots",
-  "Accessory",
-  "Helmet",
-  "Amulet",
-]
-const OrderIndex: {[key: string]: number} = {};
-Order.forEach((val, i) => OrderIndex[val] = i);
+export const Order = ["Chestplate", "Boots", "Accessory", "Helmet", "Amulet"];
+const OrderIndex: { [key: string]: number } = {};
+Order.forEach((val, i) => (OrderIndex[val] = i));
 
 export const StatOrder = [
   "power",
@@ -25,7 +19,7 @@ export const StatOrder = [
   "warding",
   "drawback",
 ];
-export const statToIndex: {[key: string]: number} = {
+export const statToIndex: { [key: string]: number } = {
   power: 0,
   defense: 1,
   size: 2,
@@ -55,7 +49,7 @@ const HEALTH_PER_VIT = 4;
 const REGENERATION_AMOUNT = 0.03375;
 export const NUM_STATS = 9;
 // const MAIN_STATS = StatOrder.slice(0, NUM_STATS);
-const Ratio = [1/3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+const Ratio = [1 / 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const Armors: Armor[][] = [[], [], [], [], []];
 const Enchants: BaseArmor[] = [];
 const Jewels: BaseArmor[] = [];
@@ -65,7 +59,9 @@ let armorMax: number[] = Array(5).fill(0);
 let enchantMax: number = 0;
 let jewelMax: number = 0;
 let modifierMax: number = 0;
-const armorMaxStats: number[][] = Array(5).fill(0).map(() => Array(NUM_STATS).fill(0));
+const armorMaxStats: number[][] = Array(5)
+  .fill(0)
+  .map(() => Array(NUM_STATS).fill(0));
 const enchantMaxStats = Array(NUM_STATS).fill(0);
 const jewelMaxStats = Array(NUM_STATS).fill(0);
 const modifierMaxStats = Array(NUM_STATS).fill(0);
@@ -244,18 +240,17 @@ export class Build {
 
   constructor(armorList: Armor[] = [], stats?: number[]) {
     this.armorList = armorList;
-    if (stats)
-      this.stats = stats;
-    else
-      this.stats = calculateStats(armorList);
+    if (stats) this.stats = stats;
+    else this.stats = calculateStats(armorList);
     this.jewelSlots = armorList.reduce(
       (sum, armor) => sum + armor.jewelSlots,
       0
     );
     this.hash = getHash(this);
     this.multiplier =
-    getMult(this.stats) +
-      getExtraTotalStats(this) / ((BASE_ATTACK / Ratio[0] + BASE_HEALTH / Ratio[1]) / 2);
+      getMult(this.stats) +
+      getExtraTotalStats(this) /
+        ((BASE_ATTACK / Ratio[0] + BASE_HEALTH / Ratio[1]) / 2);
     this.baseMultiplier = getBaseMult(this.stats);
     this.efficiencyPoints = getNormalizedStats(this.stats);
     // this.statCode = getStatCode(stats);
@@ -266,7 +261,8 @@ export class Build {
   }
 
   compare(other: Build) {
-    if (useEfficiencyPoints) return this.efficiencyPoints - other.efficiencyPoints;
+    if (useEfficiencyPoints)
+      return this.efficiencyPoints - other.efficiencyPoints;
     return this.multiplier - other.multiplier;
   }
 
@@ -318,13 +314,22 @@ export class Build {
   }
 
   numEnchants() {
-    return this.armorList.reduce((sum, armor) => sum + (armor.enchant ? 1 : 0), 0);
+    return this.armorList.reduce(
+      (sum, armor) => sum + (armor.enchant ? 1 : 0),
+      0
+    );
   }
   numJewels() {
-    return this.armorList.reduce((sum, armor) => sum + (armor.jewels.filter(jewel => jewel).length), 0);
+    return this.armorList.reduce(
+      (sum, armor) => sum + armor.jewels.filter((jewel) => jewel).length,
+      0
+    );
   }
   numModifiers() {
-    return this.armorList.reduce((sum, armor) => sum + (armor.modifier ? 1 : 0), 0);
+    return this.armorList.reduce(
+      (sum, armor) => sum + (armor.modifier ? 1 : 0),
+      0
+    );
   }
 
   enchantsLeft() {
@@ -334,7 +339,9 @@ export class Build {
     return this.jewelSlots - this.numJewels();
   }
   modifiersLeft() {
-    return this.armorList.map(armor => armor.canMod && !armor.modifier ? 1 : 0).reduce((sum: number, val) => sum + val, 0);
+    return this.armorList
+      .map((armor) => (armor.canMod && !armor.modifier ? 1 : 0))
+      .reduce((sum: number, val) => sum + val, 0);
   }
 
   getEnchants() {
@@ -350,20 +357,22 @@ export class Build {
     const jewels = new Array(Jewels.length).fill(0);
     for (const armor of this.armorList) {
       for (const jewel of armor.jewels) {
-        if (jewel != undefined)
-          jewels[Jewels.indexOf(jewel)]++;
+        if (jewel != undefined) jewels[Jewels.indexOf(jewel)]++;
       }
     }
     return jewels;
   }
-
 }
 export function buildToString(build: Build) {
-  return `Multiplier: ${(Math.round(build.multiplier * 10000) / 10000)}\nBonus Stats: ${build.stats.join("/")}\nArmor: ${build.armorList.join(" ")}`;
+  return `Multiplier: ${
+    Math.round(build.multiplier * 10000) / 10000
+  }\nBonus Stats: ${build.stats.join("/")}\nArmor: ${build.armorList.join(
+    " "
+  )}`;
 }
-Build.prototype.toString = function() {
+Build.prototype.toString = function () {
   return buildToString(this);
-}
+};
 
 export function isValid(build: Build) {
   if (build.numEnchants() == 5 && build.numJewels() == build.jewelSlots) {
@@ -372,7 +381,7 @@ export function isValid(build: Build) {
     }
     return true;
   }
-  return getExtraStats(build) >= -.05;
+  return getExtraStats(build) >= -0.05;
 }
 
 export function getHash(build: Build) {
@@ -409,22 +418,28 @@ export function getFormattedNumberStr(num: number, decimals: number) {
 // pow/def, vit multiplier without weight
 export function getBaseMult(stats: number[], useWeight = false) {
   // Damage multiplier due to vit (vitDamage <= 1)
-  const vitDamage = Math.sqrt(BASE_HEALTH / (vit * HEALTH_PER_VIT + BASE_HEALTH));
-  const baseFightHP = BASE_HEALTH * (1 + fightDuration * .0075);
-  const extraFightHP = vit * HEALTH_PER_VIT + stats[1] + (useWeight ? weights[statToIndex.regeneration] : 1) * REGENERATION_AMOUNT * stats[statToIndex.regeneration] * fightDuration;
+  const vitDamage = Math.sqrt(
+    BASE_HEALTH / (vit * HEALTH_PER_VIT + BASE_HEALTH)
+  );
+  const baseFightHP = BASE_HEALTH * (1 + fightDuration * 0.0075);
+  const extraFightHP =
+    vit * HEALTH_PER_VIT +
+    stats[1] +
+    (useWeight ? weights[statToIndex.regeneration] : 1) *
+      REGENERATION_AMOUNT *
+      stats[statToIndex.regeneration] *
+      fightDuration;
   return (
     // Defense, Regeneration, Vitality multiplier
     ((extraFightHP / baseFightHP) *
       (useWeight ? weights[statToIndex.defense] : 1) +
       1) *
     // Power multiplier
-    ((stats[0] * vitDamage / BASE_ATTACK) *
+    (((stats[0] * vitDamage) / BASE_ATTACK) *
       (useWeight ? weights[statToIndex.power] : 1) +
       1)
   );
 }
-
-
 
 // Returns modified multiplier affected by weight
 export function getMult(stats: number[]) {
@@ -436,12 +451,17 @@ export function getMult(stats: number[]) {
 // secondary stats multiplier
 function otherMult(stats: number[]) {
   return (
-    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.68 + 1) *
+    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.68 +
+      1) *
     ((estimateMultComplex(stats[statToIndex.intensity]) - 1) * weights[3] + 1) *
-    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.4 + 1) *
-    ((estimateMultComplex(stats[statToIndex.agility]) - 1) * weights[5] * 0.5 + 1) *
-    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] + 1) *
-    ((estimateMultComplex(stats[statToIndex.armorpiercing]) - 1) * weights[8] + 1)
+    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.4 +
+      1) *
+    ((estimateMultComplex(stats[statToIndex.agility]) - 1) * weights[5] * 0.5 +
+      1) *
+    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] +
+      1) *
+    ((estimateMultComplex(stats[statToIndex.armorpiercing]) - 1) * weights[8] +
+      1)
   );
 }
 
@@ -471,10 +491,9 @@ export function getExtraStats(build: Build) {
 
   statsLeft +=
     (virtuous * 54) / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
-  statsLeft +=
-    (painites * 125) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
+  statsLeft += (painites * 125) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   if (useModifier) statsLeft += modifiersLeft * modifierMax;
-  
+
   for (let i = build.armorList.length; i < 5; i++) {
     for (let j = 0; j < NUM_STATS; j++) {
       extraArmorStats[j] += armorMaxStats[i][j];
@@ -488,30 +507,29 @@ export function getExtraStats(build: Build) {
         if (
           minStats[i] - build.stats[i] >
           enchantsLeft * enchantMaxStats[i] +
-          painites * 125 +
-          (jewelsLeft - painites) * jewelMaxStats[i] +
-          modifiersLeft * modifierMaxStats[i]
+            painites * 125 +
+            (jewelsLeft - painites) * jewelMaxStats[i] +
+            modifiersLeft * modifierMaxStats[i]
         )
-        return -1;
+          return -1;
       } else if (
         warding > 0 &&
         minStats[i] - build.stats[i] >
-        virtuous * 54 +
-        (enchantsLeft - virtuous) * enchantMaxStats[i] +
-        jewelsLeft * jewelMaxStats[i] +
-        modifiersLeft * modifierMaxStats[i]
+          virtuous * 54 +
+            (enchantsLeft - virtuous) * enchantMaxStats[i] +
+            jewelsLeft * jewelMaxStats[i] +
+            modifiersLeft * modifierMaxStats[i]
       )
-      return -1;
+        return -1;
     } else if (
       minStats[i] - build.stats[i] >
       enchantsLeft * enchantMaxStats[i] +
-      jewelsLeft * jewelMaxStats[i] +
-      modifiersLeft * modifierMaxStats[i] +
-      extraArmorStats[i]
+        jewelsLeft * jewelMaxStats[i] +
+        modifiersLeft * modifierMaxStats[i] +
+        extraArmorStats[i]
     )
-    return -1;
-    statsLeft -=
-    Math.max(minStats[i] - build.stats[i], 0) / Ratio[i];
+      return -1;
+    statsLeft -= Math.max(minStats[i] - build.stats[i], 0) / Ratio[i];
   }
   return statsLeft;
 }
@@ -607,7 +625,12 @@ export function calculateStats(armorList: Armor[]) {
 // }
 
 // Filters armors based on set parameters, (sunken, drawkback, warding, insanity, etc), also sort in order of highest multiplier
-function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: BaseArmor[], modifierArr: BaseArmor[]) {
+function filterArmor(
+  armorArr: Armor[][],
+  enchantArr: BaseArmor[],
+  jewelArr: BaseArmor[],
+  modifierArr: BaseArmor[]
+) {
   armorMax.fill(0);
   enchantMax = 0;
   jewelMax = 0;
@@ -624,7 +647,7 @@ function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: Bas
       if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
       armorArr[index].push(armor);
       const stats = armor.stats;
-      
+
       armorMax[index] = Math.max(armorMax[index], getNormalizedStats(stats));
       for (let i = 0; i < NUM_STATS; i++)
         armorMaxStats[index][i] = Math.max(armorMaxStats[index][i], stats[i]);
@@ -634,7 +657,8 @@ function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: Bas
 
   for (const enchant of Enchants) {
     if (enchant.warding() > warding) continue;
-    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
+    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants)
+      continue;
     enchantArr.push(enchant);
     const stats = enchant.stats;
     enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
@@ -669,11 +693,23 @@ function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: Bas
   const accessoryIndex = OrderIndex.Accessory;
   const helmetIndex = OrderIndex.Helmet;
   const amuletIndex = OrderIndex.Amulet;
-  armorMax[helmetIndex] = Math.max(armorMax[helmetIndex], armorMax[accessoryIndex]);
-  armorMax[amuletIndex] = Math.max(armorMax[amuletIndex], armorMax[accessoryIndex]);
+  armorMax[helmetIndex] = Math.max(
+    armorMax[helmetIndex],
+    armorMax[accessoryIndex]
+  );
+  armorMax[amuletIndex] = Math.max(
+    armorMax[amuletIndex],
+    armorMax[accessoryIndex]
+  );
   for (let i = 0; i < NUM_STATS; i++) {
-    armorMaxStats[helmetIndex][i] = Math.max(armorMaxStats[helmetIndex][i], armorMaxStats[accessoryIndex][i]);
-    armorMaxStats[amuletIndex][i] = Math.max(armorMaxStats[amuletIndex][i], armorMaxStats[accessoryIndex][i]);
+    armorMaxStats[helmetIndex][i] = Math.max(
+      armorMaxStats[helmetIndex][i],
+      armorMaxStats[accessoryIndex][i]
+    );
+    armorMaxStats[amuletIndex][i] = Math.max(
+      armorMaxStats[amuletIndex][i],
+      armorMaxStats[accessoryIndex][i]
+    );
   }
 }
 
@@ -682,9 +718,9 @@ function filterArmor(armorArr: Armor[][], enchantArr: BaseArmor[], jewelArr: Bas
 export function updateInfo(info: any) {
   if (initialized) return;
   for (const line of info) {
-    const words = line.split(" ");
+    const words = line.split(",");
     const category = words[0];
-    const name = words[1].replaceAll("_", " ");
+    const name = words[1];
     // Stats contains all tokens
     const stats = new Array(StatOrder.length).fill(0);
     let jewels = 0;
@@ -713,18 +749,15 @@ export function updateInfo(info: any) {
       const jewel = new BaseArmor(name, stats);
       jewel.attributes = attributes;
       Jewels.push(jewel);
-    }
-    else if (category == "Enchant") {
+    } else if (category == "Enchant") {
       const enchant = new BaseArmor(name, stats);
       enchant.attributes = attributes;
       Enchants.push(enchant);
-    }
-    else if (category == "Modifier") {
+    } else if (category == "Modifier") {
       const modifier = new BaseArmor(name, stats);
       modifier.attributes = attributes;
       Modifiers.push(modifier);
-    }
-    else {
+    } else {
       const index = OrderIndex[category];
       const armor = new Armor(name, stats, jewels, canMod);
       armor.attributes = attributes;
@@ -786,13 +819,16 @@ export function solve() {
         // Make accessory2 array (helmets)
         const helmets = armorArr[OrderIndex.Helmet];
         const length = helmets.length;
-        const accessories2 = helmets.concat(armorArr[OrderIndex.Accessory].slice(i + 1));
+        const accessories2 = helmets.concat(
+          armorArr[OrderIndex.Accessory].slice(i + 1)
+        );
         prevArmorCount[3] = 0;
         for (let j = 0; j < accessories2.length; j++) {
           tempActualArmor[3] = actualArmor;
           tempValidArmor[3] = validArmor;
           const accessory2 = accessories2[j];
-          if (!isValid(new Build([armor, boot, accessory1, accessory2]))) continue;
+          if (!isValid(new Build([armor, boot, accessory1, accessory2])))
+            continue;
           // Make accessory3 array (amulets)
           // If accessory2 is a helmet (j < length), allow only other accessories, otherwise allow accessories after j
           const accessories3 = (
@@ -828,34 +864,64 @@ export function solve() {
             if (isValid(build)) {
               validArmor++;
               const worstBuild = armorSet.first();
-              if (armorSet.size < ARMOR_SIZE || (worstBuild && build.compare(worstBuild) < 0)) {
+              if (
+                armorSet.size < ARMOR_SIZE ||
+                (worstBuild && build.compare(worstBuild) < 0)
+              ) {
                 actualArmor++;
                 armorSet.add(build);
               } else {
                 dupeOrWorseArmor++;
               }
             }
-            if (actualArmor == tempActualArmor[4] && validArmor > tempValidArmor[4]) prevArmorCount[4]++;
-            if (prevArmorCount[4] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
+            if (
+              actualArmor == tempActualArmor[4] &&
+              validArmor > tempValidArmor[4]
+            )
+              prevArmorCount[4]++;
+            if (
+              prevArmorCount[4] >= FILTER_THRESHOLD ||
+              validArmor > TOTAL_THRESHOLD
+            )
+              break;
           }
-          if (actualArmor == tempActualArmor[3] && validArmor > tempValidArmor[3]) prevArmorCount[3]++;
-          if (prevArmorCount[3] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
+          if (
+            actualArmor == tempActualArmor[3] &&
+            validArmor > tempValidArmor[3]
+          )
+            prevArmorCount[3]++;
+          if (
+            prevArmorCount[3] >= FILTER_THRESHOLD ||
+            validArmor > TOTAL_THRESHOLD
+          )
+            break;
         }
-        if (actualArmor == tempActualArmor[2] && validArmor > tempValidArmor[2]) prevArmorCount[2]++;
-        if (prevArmorCount[2] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
+        if (actualArmor == tempActualArmor[2] && validArmor > tempValidArmor[2])
+          prevArmorCount[2]++;
+        if (
+          prevArmorCount[2] >= FILTER_THRESHOLD ||
+          validArmor > TOTAL_THRESHOLD
+        )
+          break;
       }
-      if (actualArmor == tempActualArmor[1] && validArmor > tempValidArmor[1]) prevArmorCount[1]++;
-      if (prevArmorCount[1] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
+      if (actualArmor == tempActualArmor[1] && validArmor > tempValidArmor[1])
+        prevArmorCount[1]++;
+      if (prevArmorCount[1] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD)
+        break;
     }
-    if (actualArmor == tempActualArmor[0] && validArmor > tempValidArmor[0]) prevArmorCount[0]++;
-    if (prevArmorCount[0] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD) break;
+    if (actualArmor == tempActualArmor[0] && validArmor > tempValidArmor[0])
+      prevArmorCount[0]++;
+    if (prevArmorCount[0] >= FILTER_THRESHOLD || validArmor > TOTAL_THRESHOLD)
+      break;
   }
 
   let builds = armorSet.toList();
   log(console.timeEnd, "solveArmor");
 
   // const modifierSet = useModifier ? new CustomSet<Build>(getHash, Build.prototype.equals) : armorSet;
-  const modifierSet = useModifier ? new TreeSet<Build>((a, b) => a.compare(b)) : armorSet;
+  const modifierSet = useModifier
+    ? new TreeSet<Build>((a, b) => a.compare(b))
+    : armorSet;
   if (useModifier) {
     log(console.time, "solveModifier");
     for (let i = 0; i < 5; i++) {
@@ -873,13 +939,15 @@ export function solve() {
           if (isValid(build)) {
             validModifier++;
             const worstBuild = modifierSet.first();
-            if (modifierSet.size < ARMOR_SIZE || (worstBuild && build.compare(worstBuild) < 0)) {
+            if (
+              modifierSet.size < ARMOR_SIZE ||
+              (worstBuild && build.compare(worstBuild) < 0)
+            ) {
               actualModifier++;
               modifierSet.add(build);
             } else {
               dupesModifier++;
             }
-
           }
         }
       }
@@ -888,8 +956,7 @@ export function solve() {
     }
   }
 
-  if (useModifier)
-    log(console.timeEnd, "solveModifier");
+  if (useModifier) log(console.timeEnd, "solveModifier");
   // const enchantSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   const enchantSet = new TreeSet<Build>((a, b) => a.compare(b));
   log(console.time, "solveEnchant");
@@ -932,12 +999,13 @@ export function solve() {
           enchant.name != "Virtuous"
         )
           continue;
-        if (
-          armorBuild.insanity() == insanity &&
-          enchant.name == "Atlantean"
-        )
+        if (armorBuild.insanity() == insanity && enchant.name == "Atlantean")
           continue;
-        if (armorBuild.armorList[i].modifier != undefined && armorBuild.armorList[i].modifier?.name == "Atlantean" && enchant.name == "Virtuous")
+        if (
+          armorBuild.armorList[i].modifier != undefined &&
+          armorBuild.armorList[i].modifier?.name == "Atlantean" &&
+          enchant.name == "Virtuous"
+        )
           continue;
         const stats = armorBuild.stats.slice();
         for (const k of enchant.nonZeroStats) {
@@ -950,7 +1018,10 @@ export function solve() {
         if (isValid(build)) {
           validEnchant++;
           const worstBuild = enchantSet.first();
-          if (enchantSet.size < ARMOR_SIZE || (worstBuild && build.compare(worstBuild) < 0)) {
+          if (
+            enchantSet.size < ARMOR_SIZE ||
+            (worstBuild && build.compare(worstBuild) < 0)
+          ) {
             actualEnchant++;
             enchantSet.add(build);
           } else {
@@ -962,7 +1033,7 @@ export function solve() {
     builds = enchantSet.toList();
     enchantSet.clear();
   }
-  
+
   log(console.timeEnd, "solveEnchant");
   // const jewelSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   const jewelSet = new TreeSet<Build>((a, b) => a.compare(b));
@@ -1003,21 +1074,29 @@ export function solve() {
         if (isValid(build)) {
           validJewel++;
           const worstBuild = jewelSet.first();
-          if (jewelSet.size < ARMOR_SIZE || (worstBuild && build.compare(worstBuild) < 0)) {
+          if (
+            jewelSet.size < ARMOR_SIZE ||
+            (worstBuild && build.compare(worstBuild) < 0)
+          ) {
             actualJewel++;
             jewelSet.add(build);
           } else {
             dupesJewel++;
           }
         }
-        if (actualJewel == tempActualJewel && validJewel > tempValidJewel) prevJewelCount++;
-        if (prevJewelCount >= JEWEL_FILTER_THRESHOLD || validJewel > TOTAL_THRESHOLD) break;
+        if (actualJewel == tempActualJewel && validJewel > tempValidJewel)
+          prevJewelCount++;
+        if (
+          prevJewelCount >= JEWEL_FILTER_THRESHOLD ||
+          validJewel > TOTAL_THRESHOLD
+        )
+          break;
       }
     }
     builds = jewelSet.toList();
     jewelSet.clear();
   }
-  
+
   log(console.timeEnd, "solveJewels");
 
   log(

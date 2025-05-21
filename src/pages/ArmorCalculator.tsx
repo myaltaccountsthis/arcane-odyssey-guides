@@ -13,6 +13,7 @@ import BrSmall from "../components/BrSmall.tsx";
 import Heading from "../components/Heading.tsx";
 import paths from "../PathStuff.ts";
 import { ArmorCalculatorInput } from "../types/ArmorCalculatorTypes.ts";
+import ArmorFilter from "../components/ArmorFilter.tsx";
 
 // Stat order: power defense size intensity speed agility
 
@@ -46,6 +47,8 @@ function ArmorCalculator() {
     const workerRef = useRef<Worker>(new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' }));
     const worker = workerRef.current;
 
+    const armorList = useRef<string[]>([]); // Names of all base armor
+
     const toggleInfo = () => {
         const val = !infoVisible
         setInfoVisible(val);
@@ -58,6 +61,16 @@ function ArmorCalculator() {
         
         (async () => {
             infoRef.current = await fetch(paths.armorFile).then(res => res.json());
+            // Initialize armorList (used for armor filter)
+            if (infoRef.current && Array.isArray(infoRef.current)) {
+                for (const line of infoRef.current) {
+                    const tokens = line.split(",");
+                    if (tokens[0] == "Enchant" || tokens[0] == "Jewel" || tokens[0] == "Modifier") {
+                        continue;
+                    }
+                    armorList.current.push(tokens[1]);
+                }
+            }
             worker.postMessage({
                 type: "init",
                 body: infoRef.current
@@ -267,12 +280,17 @@ function ArmorCalculator() {
             <div><a href="../">More Guides</a></div>
         </div>
         <br />
-        <DropDown title="Filters" buttonClassName="!w-[120px] !max-w-[120px]">
+        <DropDown title="Filters" buttonClassName="!w-[120px]">
             <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
                 <CheckboxGroup title="Restrictions" checkboxes={restrictions}/>
                 <SliderGroup title="Options" sliders={options}/>
                 <SliderGroup title="Mins" sliders={mins} />
                 <SliderGroup title="Weights" sliders={weights} />
+            </div>
+        </DropDown>
+        <DropDown title="Armor Filters" buttonClassName="!w-[180px]">
+            <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
+                {<ArmorFilter armorList={armorList.current} />}
             </div>
         </DropDown>
         <br />
