@@ -14,6 +14,7 @@ import Heading from "../components/Heading.tsx";
 import paths from "../PathStuff.ts";
 import { ArmorCalculatorInput } from "../types/ArmorCalculatorTypes.ts";
 import ArmorFilter from "../components/ArmorFilter.tsx";
+import TreeSet from "../TreeSet.ts";
 
 // Stat order: power defense size intensity speed agility
 
@@ -48,6 +49,24 @@ function ArmorCalculator() {
     const worker = workerRef.current;
 
     const armorList = useRef<string[]>([]); // Names of all base armor
+    const includeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
+    const excludeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
+
+    const updateInclude = (armor: string, state: boolean) => {
+        if (state) {
+            includeArmor.current.add(armor);
+        } else {
+            includeArmor.current.delete(armor);
+        }
+    }
+
+    const updateExclude = (armor: string, state: boolean) => {
+        if (state) {
+            excludeArmor.current.add(armor);
+        } else {
+            excludeArmor.current.delete(armor);
+        }
+    }
 
     const toggleInfo = () => {
         const val = !infoVisible
@@ -288,11 +307,7 @@ function ArmorCalculator() {
                 <SliderGroup title="Weights" sliders={weights} />
             </div>
         </DropDown>
-        <DropDown title="Armor Filters" buttonClassName="!w-[180px]">
-            <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
-                {<ArmorFilter armorList={armorList.current} />}
-            </div>
-        </DropDown>
+        <ArmorFilter armorList={armorList.current} updateInclude={updateInclude} updateExclude={updateExclude} />
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
         <br />
