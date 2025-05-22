@@ -14,7 +14,6 @@ import Heading from "../components/Heading.tsx";
 import paths from "../PathStuff.ts";
 import { ArmorCalculatorInput, ArmorState } from "../types/ArmorCalculatorTypes.ts";
 import ArmorFilter from "../components/ArmorFilter.tsx";
-import TreeSet from "../TreeSet.ts";
 
 // Stat order: power defense size intensity speed agility
 
@@ -49,20 +48,30 @@ function ArmorCalculator() {
     const worker = workerRef.current;
 
     const armorList = useRef<string[]>([]); // Names of all base armor
-    const includeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
-    const excludeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
+    const [includeArmor, setIncludeArmor] = useState<string[]>([]);
+    const [excludeArmor, setExcludeArmor] = useState<string[]>([]);
+
+    const addToArray = (arr: any[], setArr: React.Dispatch<React.SetStateAction<any>>, item: any) => {
+        if (arr.includes(item)) {
+            return;
+        }
+        setArr([...arr, item]);
+    }
+    const removeFromArray = (arr: any[], setArr: React.Dispatch<React.SetStateAction<any>>, item: any) => {
+        setArr(arr.filter((i) => i !== item));
+    }
 
     // Update armor include/exclude
     const updateState = (armor: string, state: ArmorState) => {
         if (state == 'none') {
-            includeArmor.current.delete(armor);
-            excludeArmor.current.delete(armor);
+            removeFromArray(includeArmor, setIncludeArmor, armor);
+            removeFromArray(excludeArmor, setExcludeArmor, armor);
         } else if (state == 'include') {
-            includeArmor.current.add(armor);
-            excludeArmor.current.delete(armor);
+            addToArray(includeArmor, setIncludeArmor, armor);
+            removeFromArray(excludeArmor, setExcludeArmor, armor);
         } else {
-            excludeArmor.current.add(armor);
-            includeArmor.current.delete(armor);
+            addToArray(excludeArmor, setExcludeArmor, armor);
+            removeFromArray(includeArmor, setIncludeArmor, armor);
         }
     }
 
@@ -199,8 +208,8 @@ function ArmorCalculator() {
             fightDuration: fightDuration,
             minStats: [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
             weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight],
-            includeArmor: includeArmor.current.toList(),
-            excludeArmor: excludeArmor.current.toList()
+            includeArmor: includeArmor,
+            excludeArmor: excludeArmor
         }
     };
 
@@ -251,7 +260,9 @@ function ArmorCalculator() {
             wa: warding,
             dr: maxDrawbacks,
             min: mins.map(info => info.value),
-            w: weights.map(info => info.value)
+            w: weights.map(info => info.value),
+            inc: includeArmor,
+            exc: excludeArmor
         };
     }
     const setCopyPaste = (value: ArmorCalculatorSettings) => {
@@ -265,6 +276,8 @@ function ArmorCalculator() {
         setMaxDrawbacks(value.dr);
         mins.forEach((info, index) => info.onChange(value.min[index]));
         weights.forEach((info, index) => info.onChange(value.w[index]));
+        setIncludeArmor(value.inc);
+        setExcludeArmor(value.exc);
     }
 
     const settings = getSettings();
