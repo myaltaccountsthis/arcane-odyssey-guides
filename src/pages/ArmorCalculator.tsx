@@ -12,7 +12,7 @@ import Button from "../components/Button.tsx";
 import BrSmall from "../components/BrSmall.tsx";
 import Heading from "../components/Heading.tsx";
 import paths from "../PathStuff.ts";
-import { ArmorCalculatorInput } from "../types/ArmorCalculatorTypes.ts";
+import { ArmorCalculatorInput, ArmorState } from "../types/ArmorCalculatorTypes.ts";
 import ArmorFilter from "../components/ArmorFilter.tsx";
 import TreeSet from "../TreeSet.ts";
 
@@ -52,19 +52,17 @@ function ArmorCalculator() {
     const includeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
     const excludeArmor = useRef<TreeSet<string>>(new TreeSet<string>((a, b) => a.localeCompare(b)));
 
-    const updateInclude = (armor: string, state: boolean) => {
-        if (state) {
-            includeArmor.current.add(armor);
-        } else {
+    // Update armor include/exclude
+    const updateState = (armor: string, state: ArmorState) => {
+        if (state == 'none') {
             includeArmor.current.delete(armor);
-        }
-    }
-
-    const updateExclude = (armor: string, state: boolean) => {
-        if (state) {
-            excludeArmor.current.add(armor);
-        } else {
             excludeArmor.current.delete(armor);
+        } else if (state == 'include') {
+            includeArmor.current.add(armor);
+            excludeArmor.current.delete(armor);
+        } else {
+            excludeArmor.current.add(armor);
+            includeArmor.current.delete(armor);
         }
     }
 
@@ -77,7 +75,7 @@ function ArmorCalculator() {
     useEffect(() => {
         if (window.sessionStorage.getItem("showInfo") === "false" && infoVisible)
             toggleInfo();
-        
+
         (async () => {
             infoRef.current = await fetch(paths.armorFile).then(res => res.json());
             // Initialize armorList (used for armor filter)
@@ -140,7 +138,7 @@ function ArmorCalculator() {
         { className: "drawback", name: "Max Drawback", value: maxDrawbacks, min: 0, max: 20, step: 1, onChange: setMaxDrawbacks },
         { className: "fight-duration", name: "Fight Duration", value: fightDuration, min: 0, max: 600, step: 1, onChange: setFightDuration },
     ];
-    
+
     // Mins
     const [minPower, setMinPower] = useState(-1);
     const [minDefense, setMinDefense] = useState(-1);
@@ -184,7 +182,7 @@ function ArmorCalculator() {
         { className: "resistance-weight", name: "Resistance", value: resistanceWeight, min: 0, max: 200, step: 1, onChange: setResistanceWeight },
         { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
     ];
-    
+
     // Convert frontend inputs to backend format
     const convertInputFormat = (): ArmorCalculatorInput => {
         return {
@@ -200,10 +198,12 @@ function ArmorCalculator() {
             warding: warding,
             fightDuration: fightDuration,
             minStats: [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
-            weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight]
+            weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight],
+            includeArmor: includeArmor.current.toList(),
+            excludeArmor: excludeArmor.current.toList()
         }
     };
-    
+
     const [builds, setBuilds] = useState<Build[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingTextIndex, setLoadingTextIndex] = useState(0);
@@ -215,7 +215,7 @@ function ArmorCalculator() {
     const clear = () => {
         setBuilds([]);
     }
-    
+
     useEffect(() => {
         if (loading) {
             setLoadingTextIndex((loadingTextIndex + 1) % loadingText.length);
@@ -240,7 +240,7 @@ function ArmorCalculator() {
         return () => clearInterval(interval);
     }, [loadingTextIndex]);
 
-    const getSettings: () => {[key: string]: any} = () => {
+    const getSettings: () => { [key: string]: any } = () => {
         return {
             s: useSunken ? 1 : 0,
             a: useAmulet ? 1 : 0,
@@ -301,15 +301,16 @@ function ArmorCalculator() {
         <br />
         <DropDown title="Filters" buttonClassName="!w-[120px]">
             <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
-                <CheckboxGroup title="Restrictions" checkboxes={restrictions}/>
-                <SliderGroup title="Options" sliders={options}/>
+                <CheckboxGroup title="Restrictions" checkboxes={restrictions} />
+                <SliderGroup title="Options" sliders={options} />
                 <SliderGroup title="Mins" sliders={mins} />
                 <SliderGroup title="Weights" sliders={weights} />
             </div>
         </DropDown>
-        <ArmorFilter armorList={armorList.current} updateInclude={updateInclude} updateExclude={updateExclude} />
         <br />
-        <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste}/>
+        <ArmorFilter armorList={armorList.current} updateState={updateState} />
+        <br />
+        <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste} />
         <br />
         {loaded && <Button onClick={update}>Update</Button>}
         <BrSmall />
@@ -323,9 +324,9 @@ function ArmorCalculator() {
         </div>
         <br />
         <div id="drop-downs">
-            <TextDropDown title="More Info" lines={definition} boldLines={moreInfo}/>
+            <TextDropDown title="More Info" lines={definition} boldLines={moreInfo} />
             <br />
-            <TextDropDown title="Tips" lines={tips}/>
+            <TextDropDown title="Tips" lines={tips} />
         </div>
         <div className="h-20" />
     </div>

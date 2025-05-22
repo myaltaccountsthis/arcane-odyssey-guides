@@ -90,6 +90,8 @@ let warding = 0;
 let fightDuration = 0;
 const minStats = Array(NUM_STATS).fill(0);
 const weights = Array(NUM_STATS).fill(100);
+let includeArmor = new TreeSet<string>((a, b) => a.localeCompare(b));
+let excludeArmor = new TreeSet<string>((a, b) => a.localeCompare(b));
 
 function log(func: Function, ...args: any) {
   func(...args);
@@ -112,6 +114,14 @@ export function updateInputs(options: ArmorCalculatorInput) {
   }
   for (let i = 0; i < weights.length; i++) {
     weights[i] = options.weights[i] / 100;
+  }
+  includeArmor.clear();
+  excludeArmor.clear();
+  for (const armor of options.includeArmor) {
+    includeArmor.add(armor);
+  }
+  for (const armor of options.excludeArmor) {
+    excludeArmor.add(armor);
   }
 }
 
@@ -643,6 +653,7 @@ function filterArmor(
   for (let index = 0; index < 5; index++) {
     if (!useAmulet && index == OrderIndex.Amulet) continue;
     for (const armor of Armors[index]) {
+      if (excludeArmor.contains(armor.name)) continue;
       if (armor.drawback() > drawback) continue;
       if (armor.attributes.indexOf("sunken") != -1 && !useSunken) continue;
       armorArr[index].push(armor);
@@ -713,6 +724,27 @@ function filterArmor(
   }
 }
 
+// Verifies that there are only 1 of each armor piece, up to 3 accessories
+function verifyInclude(armorArr: Armor[][], counts: number[] = Array(5).fill(0)) {
+  const found: string[] = [];
+  for (let index = 0; index < 5; index++) {
+    for (const armor of armorArr[index]) {
+      if (includeArmor.contains(armor.name)) {
+        counts[index]++;
+        found.push(armor.name);
+      }
+    }
+    if (counts[index] > 1 && index != OrderIndex.Accessory) {
+      return false;
+    }
+  }
+  if (counts[OrderIndex.Accessory] + counts[OrderIndex.Helmet] + counts[OrderIndex.Amulet] > 3)
+    return false;
+  if (found.length < includeArmor.size)
+    return false;
+  return true;
+}
+
 // Updates the variables using the given info
 // info: the parsed json file
 export function updateInfo(info: any) {
@@ -769,11 +801,18 @@ export function updateInfo(info: any) {
 
 // The main function. Returns an array of the top 100 builds
 export function solve() {
+  // New arrays after filtering, passed by reference
   const armorArr: Armor[][] = [[], [], [], [], []];
   const enchantArr: BaseArmor[] = [];
   const jewelArr: BaseArmor[] = [];
   const modifierArr: BaseArmor[] = [];
   filterArmor(armorArr, enchantArr, jewelArr, modifierArr);
+  // Count of include for each category
+  const counts = Array(5).fill(0);
+  if (!verifyInclude(armorArr, counts)) {
+    console.error("Invalid armor selection");
+    return [];
+  }
   // tracking vars
   let validArmor = 0,
     actualArmor = 0,
@@ -801,16 +840,21 @@ export function solve() {
   // Stores the actual armor count for each armor piece, if actualArmor stays the same, then we can add to count
   let tempActualArmor = [0, 0, 0, 0, 0];
   let tempValidArmor = [0, 0, 0, 0, 0];
+
   for (const armor of armorArr[OrderIndex.Chestplate]) {
     tempActualArmor[0] = actualArmor;
     tempValidArmor[0] = validArmor;
     prevArmorCount[1] = 0;
+    if (counts[OrderIndex.Chestplate] > 0 && !includeArmor.contains(armor.name)) continue;
     if (!isValid(new Build([armor]))) continue;
+
     for (const boot of armorArr[OrderIndex.Boots]) {
       tempActualArmor[1] = actualArmor;
       tempValidArmor[1] = validArmor;
       prevArmorCount[2] = 0;
+      if (counts[OrderIndex.Boots] > 0 && !includeArmor.contains(boot.name)) continue;
       if (!isValid(new Build([armor, boot]))) continue;
+
       for (let i = 0; i < armorArr[OrderIndex.Accessory].length; i++) {
         const accessory1 = armorArr[OrderIndex.Accessory][i];
         tempActualArmor[2] = actualArmor;
@@ -823,37 +867,37 @@ export function solve() {
           armorArr[OrderIndex.Accessory].slice(i + 1)
         );
         prevArmorCount[3] = 0;
+
         for (let j = 0; j < accessories2.length; j++) {
           tempActualArmor[3] = actualArmor;
           tempValidArmor[3] = validArmor;
           const accessory2 = accessories2[j];
-          if (!isValid(new Build([armor, boot, accessory1, accessory2])))
-            continue;
+          if (counts[OrderIndex.Helmet] > 0 && !includeArmor.contains(accessory2.name)) continue;
+          if (!isValid(new Build([armor, boot, accessory1, accessory2]))) continue;
           // Make accessory3 array (amulets)
           // If accessory2 is a helmet (j < length), allow only other accessories, otherwise allow accessories after j
           const accessories3 = (
             j < length ? accessories2.slice(length) : accessories2.slice(j + 1)
           ).concat(useAmulet ? armorArr[OrderIndex.Amulet] : []);
-
           prevArmorCount[4] = 0;
+
           for (const accessory3 of accessories3) {
             tempActualArmor[4] = actualArmor;
             tempValidArmor[4] = validArmor;
-            const armorList = [
-              armor,
-              boot,
-              accessory1,
-              accessory2,
-              accessory3,
-            ].map(
+
+            // Handle including amulets, accessories, and helmets
+            if (counts[OrderIndex.Amulet] > 0 && !includeArmor.contains(accessory3.name)) continue;
+            if ((includeArmor.contains(accessory1.name) ? 1 : 0) +
+                (includeArmor.contains(accessory2.name) ? 1 : 0) +
+                (includeArmor.contains(accessory3.name) ? 1 : 0) <
+                counts[OrderIndex.Accessory] + counts[OrderIndex.Helmet] + counts[OrderIndex.Amulet])
+              continue;
+
+            const armorList = [armor, boot, accessory1, accessory2, accessory3].map(
               (armor) =>
-                new Armor(
-                  armor.name,
-                  armor.stats,
-                  armor.jewelSlots,
-                  armor.canMod
-                )
+                new Armor(armor.name, armor.stats, armor.jewelSlots, armor.canMod)
             );
+
             const armorStats = Array(StatOrder.length).fill(0);
             for (const item of armorList) {
               for (const k of item.nonZeroStats) armorStats[k] += item.stats[k];

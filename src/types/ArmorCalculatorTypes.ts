@@ -15,8 +15,8 @@ export type ArmorCalculatorInput = {
   fightDuration: number;
   minStats: number[];
   weights: number[];
-  //   containsArmor: BaseArmor[];
-  //   excludesArmor: BaseArmor[];
+  includeArmor: string[];
+  excludeArmor: string[];
 };
 
 export type EventType = "init" | "config" | "solve";
@@ -24,3 +24,6 @@ export interface EventData {
   type: EventType;
   body: any;
 }
+
+// For armor filter
+export type ArmorState = "none" | "include" | "exclude";
