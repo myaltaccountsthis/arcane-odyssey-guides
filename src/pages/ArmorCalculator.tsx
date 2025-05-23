@@ -21,20 +21,21 @@ const moreInfo = [
     "Armor",
     "Weights",
     "Multiplier",
-    "Efficiency Points"
+    "Efficiency Points",
+    "Fight Duration"
 ];
 const definition = [
     "list of required armor pieces",
     "change them to prioritize certain stats",
     "estimate advantage against unarmored opponent based on pow/def and weighted secondary stats",
-    "sum of build stats normalized to secondary stats using enchant ratios"
+    "sum of build stats normalized to secondary stats using enchant ratios",
+    "time in seconds of the fight, used to calculate heatlh regen"
 ];
 
 const tips = [
     "Secondary stat curve is based on Metapoly's real formulas",
     "Base Multiplier only considers pow/def raw multiplier",
     "Jewels and Enchants can be swapped around unless Atlantean",
-    "Takes about 2000ms again",
     "Solver should run faster with more restrictions"
 ];
 
