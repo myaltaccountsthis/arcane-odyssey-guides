@@ -47,8 +47,7 @@ The Armor Build Calculator helps players plan and optimize their armor and acces
 
 * **Updates:** Balance changes can change stats or add new armors. Please DM afakeusername or create a GitHub issue.
 * **Missing Armors:** Not all armors are in the catalog. Armors with direct upgrades or poor efficiency points are excluded.
-* **Secondary Stat Calculations:** Calculations for secondary stat-based builds may not truly reflect their actual benefit. Use weights or min stats to counter this.
-* **User Interface:** Depending on the complexity, new users might need a short period to familiarize themselves with all the selection options and stat displays.
+* **Secondary Stats:** Calculations for secondary stat-based builds may not truly reflect their actual benefit. Use weights or min stats to counter this.
 
 ### Tips
 
