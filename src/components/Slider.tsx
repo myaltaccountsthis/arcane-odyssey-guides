@@ -38,7 +38,7 @@ export default function Slider({ className, name, value, min, max, step, onChang
 
     return (
         <div className="flex justify-center gap-x-2 mx-auto my-[2px]">
-            <label className="grow-0 shrink basis-[150px] text-right">{name}</label>
+            <label htmlFor={className} className="grow-0 shrink basis-[150px] text-right">{name}</label>
             <input id={className} onInput={onInput} onTouchStart={onCapture} onTouchEnd={onRelease} onMouseDown={onCapture} onMouseUp={onRelease} name={className} type="range" min={min} max={max} step={step} value={val} />
             <span className="grow-0 shrink basis-[150px] text-left"><input className="border-2 border-black border-solid rounded-md w-11 hover:bg-gray-100 focus:bg-inherit transition-colors" id={`${className}-text`} onInput={e => onInput(e as React.ChangeEvent<HTMLInputElement>, false)} onFocus={onCapture} onBlur={onRelease} type="text" value={val} /></span>
         </div>

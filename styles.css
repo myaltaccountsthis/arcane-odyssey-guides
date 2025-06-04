@@ -68,3 +68,37 @@
 .vatrachos {
   color: rgb(196, 17, 17);
 }
+
+/* Range Slider Styles (For DoubleSlider) */
+.range-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: none;
+  appearance: none;
+  width: 100%;
+  position: absolute;
+  background: transparent;
+  cursor: pointer;
+  height: 4px;
+  left: 0;
+  top: 50%;
+  right: 0;
+  margin: 0 0 0 0
+}
+.range-slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  background: #0d6efd;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.range-slider-thumb::-moz-range-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  background: #0d6efd;
+  border-radius: 50%;
+  cursor: pointer;
+}

@@ -14,6 +14,7 @@ import Heading from "../components/Heading.tsx";
 import paths from "../PathStuff.ts";
 import { ArmorCalculatorInput, ArmorState } from "../types/ArmorCalculatorTypes.ts";
 import ArmorFilter from "../components/ArmorFilter.tsx";
+import OtherFilter from "../components/OtherFilter.tsx";
 
 // Stat order: power defense size intensity speed agility
 
@@ -52,6 +53,7 @@ function ArmorCalculator() {
     const [includeArmor, setIncludeArmor] = useState<string[]>([]);
     const [excludeArmor, setExcludeArmor] = useState<string[]>([]);
 
+    // O(N) to add/remoove armor from filter
     const addToArray = (arr: any[], setArr: React.Dispatch<React.SetStateAction<any>>, item: any) => {
         if (arr.includes(item)) {
             return;
@@ -63,7 +65,7 @@ function ArmorCalculator() {
     }
 
     // Update armor include/exclude
-    const updateState = (armor: string, state: ArmorState) => {
+    const updateArmorFilter = (armor: string, state: ArmorState) => {
         if (state == 'none') {
             removeFromArray(includeArmor, setIncludeArmor, armor);
             removeFromArray(excludeArmor, setExcludeArmor, armor);
@@ -74,6 +76,10 @@ function ArmorCalculator() {
             addToArray(excludeArmor, setExcludeArmor, armor);
             removeFromArray(includeArmor, setIncludeArmor, armor);
         }
+    }
+
+    const updateOtherFilter = (type: string, left: number, right: number) => {
+
     }
 
     const toggleInfo = () => {
@@ -322,7 +328,9 @@ function ArmorCalculator() {
             </div>
         </DropDown>
         <br />
-        <ArmorFilter armorList={armorList.current} updateState={updateState} />
+        <ArmorFilter armorList={armorList.current} updateState={updateArmorFilter} />
+        <br />
+        <OtherFilter enchantList={["a", "b", "c"]} jewelList={[]} modifierList={[]} updateState={updateOtherFilter} />
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste} />
         <br />
