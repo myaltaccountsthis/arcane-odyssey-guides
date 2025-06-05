@@ -6,7 +6,7 @@ import CopyPasteSettings from "../components/CopyPasteSettings";
 import DropDown from "../components/DropDown";
 import { Build } from "../Backend.ts";
 import BuildComponent from "../components/BuildComponent.tsx";
-import { ArmorCalculatorSettings, EventData } from "../types/ArmorCalculatorTypes.ts";
+import { ArmorCalculatorSettings, EventData, OtherType } from "../types/ArmorCalculatorTypes.ts";
 import TextDropDown from "../components/TextDropdown.tsx";
 import Button from "../components/Button.tsx";
 import BrSmall from "../components/BrSmall.tsx";
@@ -50,8 +50,14 @@ function ArmorCalculator() {
     const worker = workerRef.current;
 
     const armorList = useRef<string[]>([]); // Names of all base armor
+    const enchantList = useRef<string[]>([]); // Names of all base enchants
+    const jewelList = useRef<string[]>([]); // Names of all base jewels
+    const modifierList = useRef<string[]>([]); // Names of all base modifiers
     const [includeArmor, setIncludeArmor] = useState<string[]>([]);
     const [excludeArmor, setExcludeArmor] = useState<string[]>([]);
+    const [enchantBounds, setEnchantBounds] = useState<{ [key: string]: [number, number] }>({});
+    const [jewelBounds, setJewelBounds] = useState<{ [key: string]: [number, number] }>({});
+    const [modifierBounds, setModifierBounds] = useState<{ [key: string]: [number, number] }>({});
 
     // O(N) to add/remoove armor from filter
     const addToArray = (arr: any[], setArr: React.Dispatch<React.SetStateAction<any>>, item: any) => {
@@ -62,6 +68,12 @@ function ArmorCalculator() {
     }
     const removeFromArray = (arr: any[], setArr: React.Dispatch<React.SetStateAction<any>>, item: any) => {
         setArr(arr.filter((i) => i !== item));
+    }
+
+    // O(N) to set bounds for other filter (enchants, jewels, modifiers)
+    const setInDict = (dict: {[key: string]: [number, number]}, setDict: React.Dispatch<React.SetStateAction<{[key: string]: [number, number]}>>, item: string, left: number, right: number) => {
+        dict[item] = [left, right];
+        setDict({...dict});
     }
 
     // Update armor include/exclude
@@ -78,8 +90,18 @@ function ArmorCalculator() {
         }
     }
 
-    const updateOtherFilter = (type: string, left: number, right: number) => {
-
+    const updateOtherFilter = (type: OtherType, name: string, left: number, right: number) => {
+        switch (type) {
+            case "enchant":
+                setInDict(enchantBounds, setEnchantBounds, name, left, right);
+                break;
+            case "jewel":
+                setInDict(jewelBounds, setJewelBounds, name, left, right);
+                break;
+            case "modifier":
+                setInDict(modifierBounds, setModifierBounds, name, left, right);
+                break;
+        }
     }
 
     const toggleInfo = () => {
@@ -94,14 +116,27 @@ function ArmorCalculator() {
 
         (async () => {
             infoRef.current = await fetch(paths.armorFile).then(res => res.json());
-            // Initialize armorList (used for armor filter)
+            // Initialize armorList and other lists (used for armor filter/other filter)
             if (infoRef.current && Array.isArray(infoRef.current)) {
                 for (const line of infoRef.current) {
                     const tokens = line.split(",");
-                    if (tokens[0] == "Enchant" || tokens[0] == "Jewel" || tokens[0] == "Modifier") {
-                        continue;
+                    switch (tokens[0]) {
+                        case "Enchant":
+                            enchantList.current.push(tokens[1]);
+                            enchantBounds[tokens[1]] = [0, 5]; // Default bounds for enchants
+                            break;
+                        case "Jewel":
+                            jewelList.current.push(tokens[1]);
+                            jewelBounds[tokens[1]] = [0, 5]; // Default bounds for jewels
+                            break;
+                        case "Modifier":
+                            modifierList.current.push(tokens[1]);
+                            modifierBounds[tokens[1]] = [0, 5]; // Default bounds for modifiers
+                            break;
+                        default:
+                            armorList.current.push(tokens[1]);
+                            break;
                     }
-                    armorList.current.push(tokens[1]);
                 }
             }
             worker.postMessage({
@@ -330,7 +365,7 @@ function ArmorCalculator() {
         <br />
         <ArmorFilter armorList={armorList.current} updateState={updateArmorFilter} />
         <br />
-        <OtherFilter enchantList={["a", "b", "c"]} jewelList={[]} modifierList={[]} updateState={updateOtherFilter} />
+        <OtherFilter enchantList={enchantList.current} jewelList={jewelList.current} modifierList={modifierList.current} updateState={updateOtherFilter} />
         <br />
         <CopyPasteSettings settingsStr={copyPaste} setCopyPaste={setCopyPaste} />
         <br />

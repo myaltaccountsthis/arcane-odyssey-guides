@@ -27,3 +27,5 @@ export interface EventData {
 
 // For armor filter
 export type ArmorState = "none" | "include" | "exclude";
+// For other filter
+export type OtherType = "enchant" | "jewel" | "modifier";
