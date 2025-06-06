@@ -1,5 +1,5 @@
 import TreeSet from "./TreeSet";
-import { ArmorCalculatorInput } from "./types/ArmorCalculatorTypes";
+import { ArmorCalculatorInput, OtherType } from "./types/ArmorCalculatorTypes";
 
 export const Order = ["Chestplate", "Boots", "Accessory", "Helmet", "Amulet"];
 const OrderIndex: { [key: string]: number } = {};
@@ -92,6 +92,9 @@ const minStats = Array(NUM_STATS).fill(0);
 const weights = Array(NUM_STATS).fill(100);
 let includeArmor = new TreeSet<string>((a, b) => a.localeCompare(b));
 let excludeArmor = new TreeSet<string>((a, b) => a.localeCompare(b));
+let enchantBounds: { [key: string]: [number, number] } = {};
+let jewelBounds: { [key: string]: [number, number] } = {};
+let modifierBounds: { [key: string]: [number, number] } = {};
 
 function log(func: Function, ...args: any) {
   func(...args);
@@ -123,6 +126,9 @@ export function updateInputs(options: ArmorCalculatorInput) {
   for (const armor of options.excludeArmor) {
     excludeArmor.add(armor);
   }
+  enchantBounds = options.enchantBounds;
+  jewelBounds = options.jewelBounds;
+  modifierBounds = options.modifierBounds;
 }
 
 export class BaseArmor {
@@ -594,45 +600,65 @@ export function calculateStats(armorList: Armor[]) {
   return stats;
 }
 
-// // Combinations: [[number]], index: enchant index, arr, remaining: number
-// // Should be called only once
-// function calculateCombinationsHelper(
-//   combinations: number[][],
-//   numTypes: number,
-//   index: number,
-//   arr: number[],
-//   remaining: number
-// ) {
-//   if (index === numTypes) {
-//     combinations.push(arr.slice());
-//     return;
-//   }
-//   if (index === numTypes - 1) {
-//     arr[index] = remaining;
-//     combinations.push(arr.slice());
-//     return;
-//   }
-//   for (let i = 0; i <= remaining; i++) {
-//     arr[index] = i;
-//     calculateCombinationsHelper(
-//       combinations,
-//       numTypes,
-//       index + 1,
-//       arr,
-//       remaining - i
-//     );
-//     // no need to set arr[index] to 0 because subsequent calls will overwrite it
-//   }
-// }
+// Helper method to get bounds dictionary based on type
+function getBounds(type: OtherType) {
+  switch (type) {
+    case "enchant":
+      return enchantBounds;
+    case "jewel":
+      return jewelBounds;
+    case "modifier":
+      return modifierBounds;
+    default:
+      throw new Error("Invalid type");
+  }
+}
 
-// // Returns an array of Armor objects where the stats are the number of enchants
-// function calculateCombinations(numTypes: number, slots: number, forceLength = 6) {
-//   const combinations: number[][] = [];
-//   calculateCombinationsHelper(combinations, numTypes, 0, [], slots);
-//   return combinations
-//     .map((arr) => arr.concat(Array(forceLength - numTypes).fill(0)))
-//     .map((stats) => new Armor("e", stats));
-// }
+// Get count of each item based on type
+function getCount(armorList: Armor[], type: OtherType) {
+  const count: {[key: string]: number} = {};
+  for (const armor of armorList) {
+    switch (type) {
+      case "enchant":
+        if (armor.enchant == undefined) continue;
+        count[armor.enchant.name] = (count[armor.enchant.name] || 0) + 1;
+        break;
+      case "jewel":
+        for (const jewel of armor.jewels) {
+          count[jewel.name] = (count[jewel.name] || 0) + 1;
+        }
+        break;
+      case "modifier":
+        if (armor.modifier == undefined) continue;
+        count[armor.modifier.name] = (count[armor.modifier.name] || 0) + 1;
+        break;
+    }
+  }
+  return count;
+}
+
+// Get how many of each item (enchant/jewel/modifier) is needed to reach the minimum bounds
+function getNeeded(armorList: Armor[], type: OtherType) {
+  const count = getCount(armorList, type);
+  const bounds = getBounds(type);
+  let needed = 0;
+  for (const item in bounds) {
+    needed += Math.max(bounds[item][0] - (count[item] || 0), 0);
+  }
+  return needed;
+}
+
+// Checks if the armorList satisfies the maximum bounds for the given type
+function checkMaxBound(armorList: Armor[], type: OtherType) {
+  const count = getCount(armorList, type);
+  const bounds = getBounds(type);
+  for (const item in bounds) {
+    if (count[item] > bounds[item][1]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 // Filters armors based on set parameters, (sunken, drawkback, warding, insanity, etc), also sort in order of highest multiplier
 function filterArmor(
@@ -667,6 +693,7 @@ function filterArmor(
   }
 
   for (const enchant of Enchants) {
+    if (enchantBounds[enchant.name][1] == 0) continue;
     if (enchant.warding() > warding) continue;
     if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants)
       continue;
@@ -679,6 +706,7 @@ function filterArmor(
   enchantArr.sort((a, b) => getMult(b.stats) - getMult(a.stats));
 
   for (const jewel of Jewels) {
+    if (jewelBounds[jewel.name][1] == 0) continue;
     if (jewel.drawback() > drawback) continue;
     // if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
     jewelArr.push(jewel);
@@ -690,6 +718,7 @@ function filterArmor(
   jewelArr.sort((a, b) => getMult(b.stats) - getMult(a.stats));
 
   for (const modifier of Modifiers) {
+    if (modifierBounds[modifier.name][1] == 0) continue;
     if (modifier.insanity() > insanity) continue;
     modifierArr.push(modifier);
     if (modifier.name != "Atlantean") {
@@ -831,8 +860,7 @@ export function solve() {
     nJewel = 0,
     dupesJewel = 0;
   calls = 0;
-  // let minArmorStats = minStats.map((val, i) => Math.max(val - Armors[4][i].stats[i] * 5 - (useJewels ? Armors[6][i].stats[i] * 10 : 0), 0));
-  // const armorSet = new CustomSet<Build>(getHash, Build.prototype.equals);
+
   const armorSet = new TreeSet<Build>((a, b) => a.compare(b));
   log(console.time, "solveArmor");
   // How many armor pieces with no good builds, used for canceling early when certain threshold reached
@@ -962,10 +990,7 @@ export function solve() {
   let builds = armorSet.toList();
   log(console.timeEnd, "solveArmor");
 
-  // const modifierSet = useModifier ? new CustomSet<Build>(getHash, Build.prototype.equals) : armorSet;
-  const modifierSet = useModifier
-    ? new TreeSet<Build>((a, b) => a.compare(b))
-    : armorSet;
+  const modifierSet = useModifier ? new TreeSet<Build>((a, b) => a.compare(b)) : armorSet;
   if (useModifier) {
     log(console.time, "solveModifier");
     for (let i = 0; i < 5; i++) {
@@ -978,6 +1003,8 @@ export function solve() {
             continue;
           const armorList = duplicateArmorList(armorBuild.armorList);
           armorList[i].modifier = modifier;
+          if (getNeeded(armorList, "modifier") > 5 - i - 1 || !checkMaxBound(armorList, "modifier"))
+            continue;
           const build = new Build(armorList);
           nModifier++;
           if (isValid(build)) {
@@ -1001,40 +1028,11 @@ export function solve() {
   }
 
   if (useModifier) log(console.timeEnd, "solveModifier");
-  // const enchantSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   const enchantSet = new TreeSet<Build>((a, b) => a.compare(b));
   log(console.time, "solveEnchant");
   // Get best builds with enchants
-  // const enchantCombinations = calculateCombinations(includeSecondary ? 6 : 2, 5);
   for (let i = 0; i < 5; i++) {
     for (const armorBuild of builds) {
-      /*
-        for (const enchants of enchantCombinations) {
-          const combination = enchants.stats;
-          const stats = armorBuild.stats.slice();
-          for (const i of enchants.nonZeroStats) {
-            stats[i] += combination[i] * Armors[4][i].stats[i];
-          }
-          const build = new Build(armorBuild.armorList, vit, stats, combination, undefined, false, useJewels);
-          nEnchant++;
-          if (build.isValid()) {
-            validEnchant++;
-            if (enchantSet.add(build)) {
-              actualEnchant++;
-            }
-            else {
-              dupesEnchant++;
-            }
-            
-            if (enchantSet.size > ARMOR_SIZE * 10) {
-              const enchantArr = purge(enchantSet.toList());
-              enchantSet.clear();
-              enchantSet.addAll(enchantArr);
-              purgesEnchant++;
-            }
-          }
-        }
-        */
       for (const enchant of enchantArr) {
         if (armorBuild.warding() == warding && enchant.name == "Virtuous")
           continue;
@@ -1057,6 +1055,8 @@ export function solve() {
         }
         const armorList = duplicateArmorList(armorBuild.armorList);
         armorList[i].enchant = enchant;
+        if (getNeeded(armorList, "enchant") > 5 - i - 1 || !checkMaxBound(armorList, "enchant"))
+          continue;
         const build = new Build(armorList);
         nEnchant++;
         if (isValid(build)) {
@@ -1079,7 +1079,6 @@ export function solve() {
   }
 
   log(console.timeEnd, "solveEnchant");
-  // const jewelSet = new CustomSet<Build>(getHash, Build.prototype.equals);
   const jewelSet = new TreeSet<Build>((a, b) => a.compare(b));
   let prevJewelCount = 0;
   let tempActualJewel = actualJewel;
@@ -1113,6 +1112,8 @@ export function solve() {
           used -= armor.jewelSlots;
         }
         armorList[index].jewels[used] = jewel;
+        if (getNeeded(armorList, "jewel") > 10 - i - 1 || !checkMaxBound(armorList, "jewel"))
+          continue;
         const build = new Build(armorList);
         nJewel++;
         if (isValid(build)) {

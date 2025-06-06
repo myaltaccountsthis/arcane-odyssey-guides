@@ -15,7 +15,7 @@ export default function ArmorFilter({armorList, updateState}: ArmorFilterProps) 
         <DropDown title="Armor Filters" buttonClassName="!w-[180px]">
             <div className="flex flex-row flex-wrap justify-center w-fit max-w-[420px] lg:max-w-[840px] m-auto gap-y-4">
                 <div className="min-w-[400px]">
-                    <div className="font-bold">Armor Filter</div>
+                    <div className="font-bold text-lg">Armor Filter</div>
                     <br />
                     <div className="flex flex-row justify-center gap-x-2">
                         <button onClick={() => setMode('include')} className={`border-solid rounded-md hover:cursor-pointer p-1 ${mode == 'include' ? "bg-green-500 hover:bg-green-600" : "hover:bg-gray-300"}`}>Include</button>

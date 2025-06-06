@@ -37,7 +37,8 @@ const tips = [
     "Secondary stat curve is based on Metapoly's real formulas",
     "Base Multiplier only considers pow/def raw multiplier",
     "Jewels and Enchants can be swapped around unless Atlantean",
-    "Solver should run faster with more restrictions"
+    "Solver should run faster with more restrictions",
+    "Restrictions and filters might not find an exact build, use them for guidance",
 ];
 
 const loadingText = ["Loading", "Loading.", "Loading..", "Loading..."];
@@ -49,12 +50,15 @@ function ArmorCalculator() {
     const workerRef = useRef<Worker>(new Worker(new URL('../BackendWorker.ts', import.meta.url), { type: 'module' }));
     const worker = workerRef.current;
 
+    // Armor filter vars
     const armorList = useRef<string[]>([]); // Names of all base armor
+    const [includeArmor, setIncludeArmor] = useState<string[]>([]);
+    const [excludeArmor, setExcludeArmor] = useState<string[]>([]);
+    
+    // Other filter vars
     const enchantList = useRef<string[]>([]); // Names of all base enchants
     const jewelList = useRef<string[]>([]); // Names of all base jewels
     const modifierList = useRef<string[]>([]); // Names of all base modifiers
-    const [includeArmor, setIncludeArmor] = useState<string[]>([]);
-    const [excludeArmor, setExcludeArmor] = useState<string[]>([]);
     const [enchantBounds, setEnchantBounds] = useState<{ [key: string]: [number, number] }>({});
     const [jewelBounds, setJewelBounds] = useState<{ [key: string]: [number, number] }>({});
     const [modifierBounds, setModifierBounds] = useState<{ [key: string]: [number, number] }>({});
@@ -90,6 +94,7 @@ function ArmorCalculator() {
         }
     }
 
+    // Update other filter bounds given type (enchant, jewel, modifier), name, and bounds
     const updateOtherFilter = (type: OtherType, name: string, left: number, right: number) => {
         switch (type) {
             case "enchant":
@@ -127,7 +132,7 @@ function ArmorCalculator() {
                             break;
                         case "Jewel":
                             jewelList.current.push(tokens[1]);
-                            jewelBounds[tokens[1]] = [0, 5]; // Default bounds for jewels
+                            jewelBounds[tokens[1]] = [0, 10]; // Default bounds for jewels
                             break;
                         case "Modifier":
                             modifierList.current.push(tokens[1]);
@@ -251,7 +256,10 @@ function ArmorCalculator() {
             minStats: [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
             weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight],
             includeArmor: includeArmor,
-            excludeArmor: excludeArmor
+            excludeArmor: excludeArmor,
+            enchantBounds: enchantBounds,
+            jewelBounds: jewelBounds,
+            modifierBounds: modifierBounds
         }
     };
 

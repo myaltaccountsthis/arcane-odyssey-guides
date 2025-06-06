@@ -17,6 +17,9 @@ export type ArmorCalculatorInput = {
   weights: number[];
   includeArmor: string[];
   excludeArmor: string[];
+  enchantBounds: { [key: string]: [number, number] };
+  jewelBounds: { [key: string]: [number, number] };
+  modifierBounds: { [key: string]: [number, number] };
 };
 
 export type EventType = "init" | "config" | "solve";
