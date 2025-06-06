@@ -51,7 +51,7 @@ export default function DoubleSlider({name, leftValue, rightValue, min, max, ste
     }
 
     return (
-        <div className="flex justify-center items-center gap-x-2 mx-auto py-2 w-full lg:w-2/5">
+        <div className="flex justify-center items-center gap-x-2 mx-auto my-[2px] w-full lg:w-2/5">
             <span className="grow-0 shrink basis-[150px] text-right">{name}</span>
             <div className="w-36 relative">
                 <div className="absolute h-1 top-1/2 w-full -translate-y-1/2">
