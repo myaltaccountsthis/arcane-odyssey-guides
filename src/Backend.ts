@@ -65,7 +65,7 @@ const ARMOR_SIZE = 1000;
 const FILTER_THRESHOLD = 10;
 const TOTAL_THRESHOLD = 100000;
 const JEWEL_FILTER_THRESHOLD = 5;
-const MAX_UNIQUE_PER_ARMOR_BUILD = 5;
+// const MAX_UNIQUE_PER_ARMOR_BUILD = 5;
 
 // Tracking
 let calls = 0;
