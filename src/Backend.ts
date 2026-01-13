@@ -9,12 +9,12 @@ export const StatOrder = [
   "power",
   "defense",
   "size",
-  "intensity",
+  "haste",
   "speed",
-  "agility",
+  "range",
   "regeneration",
   "resistance",
-  "armorpiercing",
+  "pierce",
   "insanity",
   "warding",
   "drawback",
@@ -23,31 +23,25 @@ export const statToIndex: { [key: string]: number } = {
   power: 0,
   defense: 1,
   size: 2,
-  intensity: 3,
+  haste: 3,
   speed: 4,
-  agility: 5,
+  range: 5,
   regeneration: 6,
   resistance: 7,
-  armorpiercing: 8,
+  pierce: 8,
   insanity: 9,
   warding: 10,
   drawback: 11,
 };
 
 // Them darn normal jewels
-// "Jewel Power power:3",
-// "Jewel Defense defense:31",
-// "Jewel Size size:10",
-// "Jewel Intensity intensity:10",
-// "Jewel Speed speed:10",
-// "Jewel Agility agility:10",
+// 4/39/13/13/...
 
-const MAX_LEVEL = 140;
-const BASE_HEALTH = 100 + 7 * (MAX_LEVEL - 1);
+const MAX_LEVEL = 175;
+const BASE_HEALTH = 100 + 9 * (MAX_LEVEL - 1);
 const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
-const HEALTH_PER_VIT = 4;
-const REGENERATION_AMOUNT = 0.03375;
 export const NUM_STATS = 9;
+const MAX_JEWELS = 13;
 // const MAIN_STATS = StatOrder.slice(0, NUM_STATS);
 const Ratio = [1 / 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const Armors: Armor[][] = [[], [], [], [], []];
@@ -67,17 +61,17 @@ const jewelMaxStats = Array(NUM_STATS).fill(0);
 const modifierMaxStats = Array(NUM_STATS).fill(0);
 
 const BUILD_SIZE = 100;
-const ARMOR_SIZE = 500;
+const ARMOR_SIZE = 1000;
 const FILTER_THRESHOLD = 10;
 const TOTAL_THRESHOLD = 100000;
 const JEWEL_FILTER_THRESHOLD = 5;
+const MAX_UNIQUE_PER_ARMOR_BUILD = 5;
 
 // Tracking
 let calls = 0;
 let initialized = false;
 
 // Inputs
-let vit = 0;
 let useEfficiencyPoints = false;
 let useAmulet = true;
 let useSunken = true;
@@ -101,7 +95,6 @@ function log(func: Function, ...args: any) {
 }
 
 export function updateInputs(options: ArmorCalculatorInput) {
-  vit = options.vit;
   useEfficiencyPoints = options.useEfficiencyPoints;
   useAmulet = options.useAmulet;
   useSunken = options.useSunken;
@@ -157,13 +150,13 @@ export class BaseArmor {
   size() {
     return this.stats[2];
   }
-  intensity() {
+  haste() {
     return this.stats[3];
   }
   speed() {
     return this.stats[4];
   }
-  agility() {
+  range() {
     return this.stats[5];
   }
   regeneration() {
@@ -172,7 +165,7 @@ export class BaseArmor {
   resistance() {
     return this.stats[7];
   }
-  armorpiercing() {
+  pierce() {
     return this.stats[8];
   }
   insanity() {
@@ -301,13 +294,13 @@ export class Build {
   size() {
     return this.stats[2];
   }
-  intensity() {
+  haste() {
     return this.stats[3];
   }
   speed() {
     return this.stats[4];
   }
-  agility() {
+  range() {
     return this.stats[5];
   }
   regeneration() {
@@ -316,7 +309,7 @@ export class Build {
   resistance() {
     return this.stats[7];
   }
-  armorpiercing() {
+  pierce() {
     return this.stats[8];
   }
   insanity() {
@@ -431,27 +424,17 @@ export function getFormattedNumberStr(num: number, decimals: number) {
     .padStart(decimals, "0")}`;
 }
 
-// pow/def, vit multiplier without weight
+// pow/def multiplier without weight
 export function getBaseMult(stats: number[], useWeight = false) {
-  // Damage multiplier due to vit (vitDamage <= 1)
-  const vitDamage = Math.sqrt(
-    BASE_HEALTH / (vit * HEALTH_PER_VIT + BASE_HEALTH)
-  );
-  const baseFightHP = BASE_HEALTH * (1 + fightDuration * 0.0075);
-  const extraFightHP =
-    vit * HEALTH_PER_VIT +
-    stats[1] +
-    (useWeight ? weights[statToIndex.regeneration] : 1) *
-      REGENERATION_AMOUNT *
-      stats[statToIndex.regeneration] *
-      fightDuration;
+  const baseFightHP = BASE_HEALTH * (1 + fightDuration * 0.00675);
+  const extraFightHP = stats[1];
   return (
-    // Defense, Regeneration, Vitality multiplier
+    // Defense, Vitality multiplier
     ((extraFightHP / baseFightHP) *
       (useWeight ? weights[statToIndex.defense] : 1) +
       1) *
     // Power multiplier
-    (((stats[0] * vitDamage) / BASE_ATTACK) *
+    ((stats[0] / BASE_ATTACK) *
       (useWeight ? weights[statToIndex.power] : 1) +
       1)
   );
@@ -467,16 +450,19 @@ export function getMult(stats: number[]) {
 // secondary stats multiplier
 function otherMult(stats: number[]) {
   return (
-    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.68 +
+    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.6 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.intensity]) - 1) * weights[3] + 1) *
-    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.4 +
+    ((estimateMultComplex(stats[statToIndex.haste]) - 1) * weights[3] * 1.0 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.agility]) - 1) * weights[5] * 0.5 +
+    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.525 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] +
+    ((estimateMultComplex(stats[statToIndex.range]) - 1) * weights[5] * 0.7 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.armorpiercing]) - 1) * weights[8] +
+    ((estimateMultComplex(stats[statToIndex.regeneration]) - 1) * weights[7] * 0.5 +
+      1) *
+    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] * 0.525 +
+      1) *
+    ((estimateMultComplex(stats[statToIndex.pierce]) - 1) * weights[8] * 1.0 +
       1)
   );
 }
@@ -625,6 +611,7 @@ function getCount(armorList: Armor[], type: OtherType) {
         break;
       case "jewel":
         for (const jewel of armor.jewels) {
+          if (jewel == undefined) console.log(armor);
           count[jewel.name] = (count[jewel.name] || 0) + 1;
         }
         break;
@@ -989,9 +976,11 @@ export function solve() {
 
   let builds = armorSet.toList();
   log(console.timeEnd, "solveArmor");
+  console.log(builds);
 
-  const modifierSet = useModifier ? new TreeSet<Build>((a, b) => a.compare(b)) : armorSet;
   if (useModifier) {
+    const modifierSet = new TreeSet<Build>((a, b) => a.compare(b));
+    // const modifierPerBuild: {[key: Armor[]] : TreeSet<Build>};
     log(console.time, "solveModifier");
     for (let i = 0; i < 5; i++) {
       for (const armorBuild of builds) {
@@ -1084,17 +1073,17 @@ export function solve() {
   let tempActualJewel = actualJewel;
   let tempValidJewel = validJewel;
   log(console.time, "solveJewels");
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < MAX_JEWELS; i++) {
     prevJewelCount = 0;
     for (const enchantBuild of builds) {
-      if (enchantBuild.jewelSlots < 10 - i) {
+      if (enchantBuild.jewelSlots < MAX_JEWELS - i) {
         jewelSet.add(enchantBuild);
         continue;
       }
       for (const j in jewelArr) {
         const jewel = jewelArr[j];
         if (
-          drawback - enchantBuild.drawback() < 10 - i &&
+          drawback - enchantBuild.drawback() < MAX_JEWELS - i &&
           jewel.name == "Painite"
         )
           continue;
@@ -1103,7 +1092,7 @@ export function solve() {
 
         // figure out which armor to add jewel to
         let index = 0,
-          used = enchantBuild.jewelSlots - 10 + i;
+          used = enchantBuild.jewelSlots - MAX_JEWELS + i;
         for (const armor of armorList) {
           if (used < armor.jewelSlots) {
             break;
@@ -1112,7 +1101,7 @@ export function solve() {
           used -= armor.jewelSlots;
         }
         armorList[index].jewels[used] = jewel;
-        if (getNeeded(armorList, "jewel") > 10 - i - 1 || !checkMaxBound(armorList, "jewel"))
+        if (getNeeded(armorList, "jewel") > MAX_JEWELS - i - 1 || !checkMaxBound(armorList, "jewel"))
           continue;
         const build = new Build(armorList);
         nJewel++;

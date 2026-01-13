@@ -2,7 +2,6 @@
 
 export type ArmorCalculatorSettings = { [key: string]: any };
 export type ArmorCalculatorInput = {
-  vit: number;
   useEfficiencyPoints: boolean;
   useAmulet: boolean;
   useSunken: boolean;

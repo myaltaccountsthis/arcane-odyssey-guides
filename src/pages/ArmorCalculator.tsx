@@ -16,8 +16,6 @@ import { ArmorCalculatorInput, ArmorState } from "../types/ArmorCalculatorTypes.
 import ArmorFilter from "../components/ArmorFilter.tsx";
 import OtherFilter from "../components/OtherFilter.tsx";
 
-// Stat order: power defense size intensity speed agility
-
 const moreInfo = [
     "Armor",
     "Weights",
@@ -27,7 +25,7 @@ const moreInfo = [
 ];
 const definition = [
     "list of required armor pieces",
-    "change them to prioritize certain stats",
+    "change them to prioritize certain stats, ex. +30% speed = +(30 * weight/100)% multiplier",
     "estimate advantage against unarmored opponent based on pow/def and weighted secondary stats",
     "sum of build stats normalized to secondary stats using enchant ratios",
     "time in seconds of the fight, used to calculate heatlh regen"
@@ -39,6 +37,8 @@ const tips = [
     "Jewels and Enchants can be swapped around unless Atlantean",
     "Solver should run faster with more restrictions",
     "Restrictions and filters might not find an exact build, use them for guidance",
+    "Pierce should be 25 for PVE build, ~12 (8 for ~550 def to 18 for ~1200 def)",
+    "Resistance is (TODO)"
 ];
 
 const loadingText = ["Loading", "Loading.", "Loading..", "Loading..."];
@@ -180,14 +180,12 @@ function ArmorCalculator() {
     ];
 
     // Options
-    const [vit, setVit] = useState(0);
     const [decimals, setDecimals] = useState(3);
     const [insanity, setInsanity] = useState(0);
     const [warding, setWarding] = useState(0);
     const [maxDrawbacks, setMaxDrawbacks] = useState(0);
     const [fightDuration, setFightDuration] = useState(60);
     const options = [
-        { className: "vit", name: "Vitality", value: vit, min: 0, max: 250, step: 1, onChange: setVit },
         { className: "decimals", name: "Decimals", value: decimals, min: 1, max: 5, step: 1, onChange: setDecimals },
         { className: "insanity", name: "Insanity", value: insanity, min: 0, max: 5, step: 1, onChange: setInsanity },
         { className: "warding", name: "Warding", value: warding, min: 0, max: 5, step: 1, onChange: setWarding },
@@ -199,50 +197,49 @@ function ArmorCalculator() {
     const [minPower, setMinPower] = useState(-1);
     const [minDefense, setMinDefense] = useState(-1);
     const [minSize, setMinSize] = useState(-1);
-    const [minIntensity, setMinIntensity] = useState(-1);
+    const [minHaste, setMinHaste] = useState(-1);
     const [minSpeed, setMinSpeed] = useState(-1);
-    const [minAgility, setMinAgility] = useState(-1);
+    const [minRange, setMinRange] = useState(-1);
     const [minRegeneration, setMinRegeneration] = useState(-1);
     const [minResistance, setMinResistance] = useState(-1);
-    const [minArmorPiercing, setMinArmorPiercing] = useState(-1);
+    const [minPierce, setMinPierce] = useState(-1);
     const mins = [
         { className: "min-power", name: "Power", value: minPower, min: -1, max: 350, step: 1, onChange: setMinPower },
         { className: "min-defense", name: "Defense", value: minDefense, min: -1, max: 3500, step: 1, onChange: setMinDefense },
         { className: "min-size", name: "Size", value: minSize, min: -1, max: 650, step: 1, onChange: setMinSize },
-        { className: "min-intensity", name: "Intensity", value: minIntensity, min: -1, max: 650, step: 1, onChange: setMinIntensity },
+        { className: "min-haste", name: "Haste", value: minHaste, min: -1, max: 650, step: 1, onChange: setMinHaste },
         { className: "min-speed", name: "Speed", value: minSpeed, min: -1, max: 650, step: 1, onChange: setMinSpeed },
-        { className: "min-agility", name: "Agility", value: minAgility, min: -1, max: 650, step: 1, onChange: setMinAgility },
+        { className: "min-range", name: "Range", value: minRange, min: -1, max: 650, step: 1, onChange: setMinRange },
         { className: "min-regeneration", name: "Regeneration", value: minRegeneration, min: -1, max: 650, step: 1, onChange: setMinRegeneration },
         { className: "min-resistance", name: "Resistance", value: minResistance, min: -1, max: 650, step: 1, onChange: setMinResistance },
-        { className: "min-armor-piercing", name: "Armor Piercing", value: minArmorPiercing, min: -1, max: 650, step: 1, onChange: setMinArmorPiercing },
+        { className: "min-pierce", name: "Pierce", value: minPierce, min: -1, max: 650, step: 1, onChange: setMinPierce },
     ];
 
     // Weights
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
-    const [intensityWeight, setIntensityWeight] = useState(25);
-    const [speedWeight, setSpeedWeight] = useState(60);
-    const [agilityWeight, setAgilityWeight] = useState(60);
+    const [hasteWeight, setHasteWeight] = useState(25);
+    const [speedWeight, setSpeedWeight] = useState(40);
+    const [rangeWeight, setRangeWeight] = useState(40);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
-    const [resistanceWeight, setResistanceWeight] = useState(10);
-    const [armorPiercingWeight, setArmorPiercingWeight] = useState(20);
+    const [resistanceWeight, setResistanceWeight] = useState(20);
+    const [pierceWeight, setPierceWeight] = useState(25);
     const weights = [
         { className: "power-weight", name: "Power", value: powerWeight, min: 0, max: 200, step: 1, onChange: setPowerWeight },
         { className: "defense-weight", name: "Defense", value: defenseWeight, min: 0, max: 200, step: 1, onChange: setDefenseWeight },
         { className: "size-weight", name: "Size", value: sizeWeight, min: 0, max: 200, step: 1, onChange: setSizeWeight },
-        { className: "intensity-weight", name: "Intensity", value: intensityWeight, min: 0, max: 200, step: 1, onChange: setIntensityWeight },
+        { className: "haste-weight", name: "Haste", value: hasteWeight, min: 0, max: 200, step: 1, onChange: setHasteWeight },
         { className: "speed-weight", name: "Speed", value: speedWeight, min: 0, max: 200, step: 1, onChange: setSpeedWeight },
-        { className: "agility-weight", name: "Agility", value: agilityWeight, min: 0, max: 200, step: 1, onChange: setAgilityWeight },
+        { className: "range-weight", name: "Range", value: rangeWeight, min: 0, max: 200, step: 1, onChange: setRangeWeight },
         { className: "regeneration-weight", name: "Regeneration", value: regenerationWeight, min: 0, max: 200, step: 1, onChange: setRegenerationWeight },
         { className: "resistance-weight", name: "Resistance", value: resistanceWeight, min: 0, max: 200, step: 1, onChange: setResistanceWeight },
-        { className: "armor-piercing-weight", name: "Armor Piercing", value: armorPiercingWeight, min: 0, max: 200, step: 1, onChange: setArmorPiercingWeight },
+        { className: "pierce-weight", name: "Pierce", value: pierceWeight, min: 0, max: 200, step: 1, onChange: setPierceWeight },
     ];
 
     // Convert frontend inputs to backend format
     const convertInputFormat = (): ArmorCalculatorInput => {
         return {
-            vit: vit,
             useEfficiencyPoints: useEfficiencyPoints,
             useSunken: useSunken,
             useModifier: useModifier,
@@ -253,8 +250,8 @@ function ArmorCalculator() {
             drawback: maxDrawbacks,
             warding: warding,
             fightDuration: fightDuration,
-            minStats: [minPower, minDefense, minSize, minIntensity, minSpeed, minAgility, minRegeneration, minResistance, minArmorPiercing],
-            weights: [powerWeight, defenseWeight, sizeWeight, intensityWeight, speedWeight, agilityWeight, regenerationWeight, resistanceWeight, armorPiercingWeight],
+            minStats: [minPower, minDefense, minSize, minHaste, minSpeed, minRange, minRegeneration, minResistance, minPierce],
+            weights: [powerWeight, defenseWeight, sizeWeight, hasteWeight, speedWeight, rangeWeight, regenerationWeight, resistanceWeight, pierceWeight],
             includeArmor: includeArmor,
             excludeArmor: excludeArmor,
             enchantBounds: enchantBounds,
@@ -304,7 +301,6 @@ function ArmorCalculator() {
             s: useSunken ? 1 : 0,
             a: useAmulet ? 1 : 0,
             md: useModifier ? 1 : 0,
-            v: vit,
             d: decimals,
             i: insanity,
             wa: warding,
@@ -319,7 +315,6 @@ function ArmorCalculator() {
         setUseSunken(value.s === 1);
         setUseAmulet(value.a === 1);
         setUseModifier(value.md === 1);
-        setVit(value.v);
         setDecimals(value.d);
         setInsanity(value.i);
         setWarding(value.wa);
@@ -358,6 +353,10 @@ function ArmorCalculator() {
             </div>
             <BrSmall />
             <div>Check the source code <a target="_blank" href="https://github.com/myaltaccountsthis/arcane-odyssey-guides">here</a></div>
+            <BrSmall />
+            <div>
+                Changes: removed underleveled boss drops, updated stats, added main new sets
+            </div>
             <BrSmall />
             <div><a href="../">More Guides</a></div>
         </div>
