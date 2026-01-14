@@ -450,17 +450,17 @@ export function getMult(stats: number[]) {
 // secondary stats multiplier
 function otherMult(stats: number[]) {
   return (
-    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.6 +
+    ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.575 +
       1) *
     ((estimateMultComplexHaste(stats[statToIndex.haste]) - 1) * weights[3] * 1.0 +
       1) *
     ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.525 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.range]) - 1) * weights[5] * 0.7 +
+    ((estimateMultComplex(stats[statToIndex.range]) - 1) * weights[5] * 0.8 +
       1) *
     ((estimateMultComplex(stats[statToIndex.regeneration]) - 1) * weights[7] * 0.5 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] * 0.525 +
+    ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] * 0.55 +
       1) *
     ((estimateMultComplex(stats[statToIndex.pierce]) - 1) * weights[8] * 1.0 +
       1)
