@@ -38,7 +38,6 @@ const tips = [
     "Solver should run faster with more restrictions",
     "Restrictions and filters might not find an exact build, use them for guidance",
     "Pierce should be 25 for PVE build, ~12 (8 for ~550 def to 18 for ~1200 def)",
-    "Resistance is (TODO)"
 ];
 
 const loadingText = ["Loading", "Loading.", "Loading..", "Loading..."];
@@ -219,7 +218,7 @@ function ArmorCalculator() {
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
-    const [hasteWeight, setHasteWeight] = useState(25);
+    const [hasteWeight, setHasteWeight] = useState(15);
     const [speedWeight, setSpeedWeight] = useState(40);
     const [rangeWeight, setRangeWeight] = useState(40);
     const [regenerationWeight, setRegenerationWeight] = useState(100);

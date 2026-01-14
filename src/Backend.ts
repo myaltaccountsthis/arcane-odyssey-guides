@@ -452,7 +452,7 @@ function otherMult(stats: number[]) {
   return (
     ((estimateMultComplex(stats[statToIndex.size]) - 1) * weights[2] * 0.6 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.haste]) - 1) * weights[3] * 1.0 +
+    ((estimateMultComplexHaste(stats[statToIndex.haste]) - 1) * weights[3] * 1.0 +
       1) *
     ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.525 +
       1) *
@@ -474,6 +474,17 @@ export function estimateMultComplex(stat: number) {
     1 +
     (1.35 / 100) *
       ((16 * Math.pow(Math.log(0.1 * stat + 4), 3) * 0.09 + 0.15 * stat) /
+        (0.1 + 0.15 * Math.pow(MAX_LEVEL, 0.5)) -
+        0.79)
+  );
+}
+
+export function estimateMultComplexHaste(stat: number) {
+  if (stat == 0) return 1;
+  return (
+    1 +
+    (1.35 / 100) *
+      ((16 * Math.pow(Math.log(0.2 * stat + 4), 3) * 0.09 + 0.3 * stat) /
         (0.1 + 0.15 * Math.pow(MAX_LEVEL, 0.5)) -
         0.79)
   );
