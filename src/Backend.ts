@@ -480,14 +480,15 @@ export function estimateMultComplex(stat: number) {
 }
 
 export function estimateMultComplexHaste(stat: number) {
-  if (stat == 0) return 1;
-  return (
+  const mult = stat == 0 ? 1 : (
     1 +
     (1.35 / 100) *
       ((16 * Math.pow(Math.log(0.2 * stat + 4), 3) * 0.09 + 0.3 * stat) /
         (0.1 + 0.15 * Math.pow(MAX_LEVEL, 0.5)) -
         0.79)
   );
+  const coolDownMult = 1 / (1 - (1 - 1 / (1 + mult)));
+  return coolDownMult;
 }
 
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
