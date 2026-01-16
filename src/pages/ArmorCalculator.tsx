@@ -183,7 +183,7 @@ function ArmorCalculator() {
     const [insanity, setInsanity] = useState(0);
     const [warding, setWarding] = useState(0);
     const [maxDrawbacks, setMaxDrawbacks] = useState(0);
-    const [fightDuration, setFightDuration] = useState(60);
+    const [fightDuration, setFightDuration] = useState(120);
     const options = [
         { className: "decimals", name: "Decimals", value: decimals, min: 1, max: 5, step: 1, onChange: setDecimals },
         { className: "insanity", name: "Insanity", value: insanity, min: 0, max: 5, step: 1, onChange: setInsanity },
@@ -218,7 +218,7 @@ function ArmorCalculator() {
     const [powerWeight, setPowerWeight] = useState(100);
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
-    const [hasteWeight, setHasteWeight] = useState(15);
+    const [hasteWeight, setHasteWeight] = useState(10);
     const [speedWeight, setSpeedWeight] = useState(30);
     const [rangeWeight, setRangeWeight] = useState(30);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
