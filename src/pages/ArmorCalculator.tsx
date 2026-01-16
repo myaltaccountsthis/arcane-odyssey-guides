@@ -167,15 +167,15 @@ function ArmorCalculator() {
     const [useSunken, setUseSunken] = useState(true);
     const [useModifier, setUseModifier] = useState(true);
     const [useAmulet, setUseAmulet] = useState(true);
-    const [useExoticEnchants, setUseExoticEnchants] = useState(true);
-    // const [useExoticJewels, setUseExoticJewels] = useState(true);
+    // const [useExoticEnchants, setUseExoticEnchants] = useState(true);
+    const [useFusedJewels, setUseFusedJewels] = useState(true);
     const restrictions = [
         { className: "use-efficiency-points", name: "Maximize Efficiency Points", isChecked: useEfficiencyPoints, onChange: setUseEfficiencyPoints },
         { className: "use-sunken", name: "Use Sunken", isChecked: useSunken, onChange: setUseSunken },
         { className: "use-modifier", name: "Use Modifier", isChecked: useModifier, onChange: setUseModifier },
         { className: "use-amulet", name: "Use Amulet", isChecked: useAmulet, onChange: setUseAmulet },
-        { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, onChange: setUseExoticEnchants },
-        // { className: "use-exotic-jewels", name: "Use Exotic Jewels", isChecked: useExoticJewels, onChange: setUseExoticJewels }
+        // { className: "use-exotic-enchants", name: "Use Exotic Enchants", isChecked: useExoticEnchants, onChange: setUseExoticEnchants },
+        { className: "use-fused-jewels", name: "Use Fused Jewels", isChecked: useFusedJewels, onChange: setUseFusedJewels }
     ];
 
     // Options
@@ -219,8 +219,8 @@ function ArmorCalculator() {
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
     const [hasteWeight, setHasteWeight] = useState(15);
-    const [speedWeight, setSpeedWeight] = useState(40);
-    const [rangeWeight, setRangeWeight] = useState(40);
+    const [speedWeight, setSpeedWeight] = useState(30);
+    const [rangeWeight, setRangeWeight] = useState(30);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
     const [resistanceWeight, setResistanceWeight] = useState(20);
     const [pierceWeight, setPierceWeight] = useState(25);
@@ -243,8 +243,8 @@ function ArmorCalculator() {
             useSunken: useSunken,
             useModifier: useModifier,
             useAmulet: useAmulet,
-            useExoticEnchants: useExoticEnchants,
-            // useExoticJewels: useExoticJewels,
+            // useExoticEnchants: useExoticEnchants,
+            useFusedJewels: useFusedJewels,
             insanity: insanity,
             drawback: maxDrawbacks,
             warding: warding,

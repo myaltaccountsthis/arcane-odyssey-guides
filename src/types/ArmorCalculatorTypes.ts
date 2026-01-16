@@ -6,8 +6,8 @@ export type ArmorCalculatorInput = {
   useAmulet: boolean;
   useSunken: boolean;
   useModifier: boolean;
-  useExoticEnchants: boolean;
-  // useExoticJewels: boolean,
+  // useExoticEnchants: boolean;
+  useFusedJewels: boolean,
   insanity: number;
   drawback: number;
   warding: number;

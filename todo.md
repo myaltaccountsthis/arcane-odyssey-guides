@@ -1,4 +1,4 @@
-master jewels
+qol for fused jewels
 gilded support
 single armor piece calc
 

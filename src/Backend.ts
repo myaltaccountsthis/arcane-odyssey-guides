@@ -76,8 +76,8 @@ let useEfficiencyPoints = false;
 let useAmulet = true;
 let useSunken = true;
 let useModifier = true;
-let useExoticEnchants = true;
-// let useExoticJewels = true;
+// let useExoticEnchants = true;
+let useFusedJewels = true;
 let insanity = 0;
 let drawback = 0;
 let warding = 0;
@@ -99,8 +99,8 @@ export function updateInputs(options: ArmorCalculatorInput) {
   useAmulet = options.useAmulet;
   useSunken = options.useSunken;
   useModifier = options.useModifier;
-  useExoticEnchants = options.useExoticEnchants;
-  // useExoticJewels = options.useExoticJewels;
+  // useExoticEnchants = options.useExoticEnchants;
+  useFusedJewels = options.useFusedJewels;
   insanity = options.insanity;
   drawback = options.drawback;
   warding = options.warding;
@@ -410,11 +410,11 @@ export function getHash(build: Build) {
 // }
 
 export function getMultiplierColorStr(mult: number) {
-  return `hsl(${(mult - 2) * 80}, 100%, 40%)`;
+  return `hsl(${(mult - 1) * 90}, 100%, 40%)`;
 }
 
 export function getEfficiencyPointsColorStr(points: number) {
-  return `hsl(${(points - 600) / 4}, 100%, 40%)`;
+  return `hsl(${(points - 800) / 3}, 100%, 40%)`;
 }
 
 export function getFormattedNumberStr(num: number, decimals: number) {
@@ -480,15 +480,15 @@ export function estimateMultComplex(stat: number) {
 }
 
 export function estimateMultComplexHaste(stat: number) {
-  const mult = stat == 0 ? 1 : (
+  if (stat == 0)
+    return 1;
+  return (
     1 +
     (1.35 / 100) *
       ((16 * Math.pow(Math.log(0.2 * stat + 4), 3) * 0.09 + 0.3 * stat) /
         (0.1 + 0.15 * Math.pow(MAX_LEVEL, 0.5)) -
         0.79)
   );
-  const coolDownMult = 1 / (1 - (1 - 1 / (1 + mult)));
-  return coolDownMult;
 }
 
 // Estimates the number of stats (translated to power) left after subtracting minimum stats
@@ -694,8 +694,7 @@ function filterArmor(
   for (const enchant of Enchants) {
     if (enchantBounds[enchant.name][1] == 0) continue;
     if (enchant.warding() > warding) continue;
-    if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants)
-      continue;
+    // if (enchant.attributes.indexOf("exotic") != -1 && !useExoticEnchants) continue;
     enchantArr.push(enchant);
     const stats = enchant.stats;
     enchantMax = Math.max(enchantMax, getNormalizedStats(stats));
@@ -707,7 +706,7 @@ function filterArmor(
   for (const jewel of Jewels) {
     if (jewelBounds[jewel.name][1] == 0) continue;
     if (jewel.drawback() > drawback) continue;
-    // if (jewel.attributes.indexOf("exotic") != -1 && !useExoticJewels) continue;
+    if (jewel.attributes.indexOf("fused") != -1 && !useFusedJewels) continue;
     jewelArr.push(jewel);
     const stats = jewel.stats;
     jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
