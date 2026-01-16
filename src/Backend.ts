@@ -706,7 +706,8 @@ function filterArmor(
   for (const jewel of Jewels) {
     if (jewelBounds[jewel.name][1] == 0) continue;
     if (jewel.drawback() > drawback) continue;
-    if (jewel.attributes.indexOf("fused") != -1 && !useFusedJewels) continue;
+    if (!useFusedJewels && jewel.attributes.indexOf("fused") != -1) continue;
+    if (useFusedJewels && jewel.attributes.indexOf("fused") == -1) continue;
     jewelArr.push(jewel);
     const stats = jewel.stats;
     jewelMax = Math.max(jewelMax, getNormalizedStats(stats));
@@ -797,7 +798,7 @@ export function updateInfo(info: any) {
         canMod = true;
         continue;
       }
-      if (stat == "exotic" || stat == "amulet" || stat == "sunken") {
+      if (stat == "exotic" || stat == "amulet" || stat == "sunken" || stat == "fused") {
         attributes.push(stat);
         continue;
       }
