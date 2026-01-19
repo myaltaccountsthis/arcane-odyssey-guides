@@ -504,8 +504,8 @@ export function getExtraStats(build: Build) {
   const extraArmorStats = Array(NUM_STATS).fill(0);
 
   statsLeft +=
-    (virtuous * 54) / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
-  statsLeft += (painites * 125) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
+    (virtuous * 95) / Ratio[1] + (enchantsLeft - virtuous) * enchantMax;
+  statsLeft += (painites * 222) / Ratio[1] + (jewelsLeft - painites) * jewelMax;
   if (useModifier) statsLeft += modifiersLeft * modifierMax;
 
   for (let i = build.armorList.length; i < 5; i++) {
@@ -521,7 +521,7 @@ export function getExtraStats(build: Build) {
         if (
           minStats[i] - build.stats[i] >
           enchantsLeft * enchantMaxStats[i] +
-            painites * 125 +
+            painites * 222 +
             (jewelsLeft - painites) * jewelMaxStats[i] +
             modifiersLeft * modifierMaxStats[i]
         )
@@ -529,7 +529,7 @@ export function getExtraStats(build: Build) {
       } else if (
         warding > 0 &&
         minStats[i] - build.stats[i] >
-          virtuous * 54 +
+          virtuous * 95 +
             (enchantsLeft - virtuous) * enchantMaxStats[i] +
             jewelsLeft * jewelMaxStats[i] +
             modifiersLeft * modifierMaxStats[i]
@@ -1094,9 +1094,10 @@ export function solve() {
       }
       for (const j in jewelArr) {
         const jewel = jewelArr[j];
+        // amount of extra drawback < jewels left
         if (
           drawback - enchantBuild.drawback() < MAX_JEWELS - i &&
-          jewel.name == "Painite"
+          (jewel.name == "Painite" || jewel.name == "Fused Painite")
         )
           continue;
 
