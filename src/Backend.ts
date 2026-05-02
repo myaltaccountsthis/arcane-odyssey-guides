@@ -454,7 +454,7 @@ function otherMult(stats: number[]) {
       1) *
     ((estimateMultComplexHaste(stats[statToIndex.haste]) - 1) * weights[3] * 1.0 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.525 +
+    ((estimateMultComplex(stats[statToIndex.speed]) - 1) * weights[4] * 0.55 +
       1) *
     ((estimateMultComplex(stats[statToIndex.range]) - 1) * weights[5] * 0.8 +
       1) *
