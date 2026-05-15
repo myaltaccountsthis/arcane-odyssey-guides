@@ -184,12 +184,16 @@ function ArmorCalculator() {
     const [warding, setWarding] = useState(0);
     const [maxDrawbacks, setMaxDrawbacks] = useState(0);
     const [fightDuration, setFightDuration] = useState(120);
+    const [dragonBlood, setDragonBlood] = useState(0);
+    const [shieldDef, setShieldDef] = useState(0);
     const options = [
         { className: "decimals", name: "Decimals", value: decimals, min: 1, max: 5, step: 1, onChange: setDecimals },
         { className: "insanity", name: "Insanity", value: insanity, min: 0, max: 5, step: 1, onChange: setInsanity },
         { className: "warding", name: "Warding", value: warding, min: 0, max: 5, step: 1, onChange: setWarding },
         { className: "drawback", name: "Max Drawback", value: maxDrawbacks, min: 0, max: 20, step: 1, onChange: setMaxDrawbacks },
         { className: "fight-duration", name: "Fight Duration", value: fightDuration, min: 0, max: 600, step: 1, onChange: setFightDuration },
+        { className: "dragon-blood", name: "Dragon Blood", value: dragonBlood, min: 0, max: 7, step: 1, onChange: setDragonBlood },
+        { className: "shield-def", name: "Shield Defense", value: shieldDef, min: 0, max: 500, step: 1, onChange: setShieldDef },
     ];
 
     // Mins
@@ -219,8 +223,8 @@ function ArmorCalculator() {
     const [defenseWeight, setDefenseWeight] = useState(100);
     const [sizeWeight, setSizeWeight] = useState(30);
     const [hasteWeight, setHasteWeight] = useState(10);
-    const [speedWeight, setSpeedWeight] = useState(30);
-    const [rangeWeight, setRangeWeight] = useState(30);
+    const [speedWeight, setSpeedWeight] = useState(40);
+    const [rangeWeight, setRangeWeight] = useState(35);
     const [regenerationWeight, setRegenerationWeight] = useState(100);
     const [resistanceWeight, setResistanceWeight] = useState(20);
     const [pierceWeight, setPierceWeight] = useState(25);
@@ -249,6 +253,8 @@ function ArmorCalculator() {
             drawback: maxDrawbacks,
             warding: warding,
             fightDuration: fightDuration,
+            dragonBlood: dragonBlood,
+            shieldDef: shieldDef,
             minStats: [minPower, minDefense, minSize, minHaste, minSpeed, minRange, minRegeneration, minResistance, minPierce],
             weights: [powerWeight, defenseWeight, sizeWeight, hasteWeight, speedWeight, rangeWeight, regenerationWeight, resistanceWeight, pierceWeight],
             includeArmor: includeArmor,
@@ -304,6 +310,9 @@ function ArmorCalculator() {
             i: insanity,
             wa: warding,
             dr: maxDrawbacks,
+            fd: fightDuration,
+            db: dragonBlood,
+            sd: shieldDef,
             min: mins.map(info => info.value),
             w: weights.map(info => info.value),
             inc: includeArmor,
@@ -318,6 +327,9 @@ function ArmorCalculator() {
         setInsanity(value.i);
         setWarding(value.wa);
         setMaxDrawbacks(value.dr);
+        setFightDuration(value.fd);
+        setDragonBlood(value.db);
+        setShieldDef(value.sd);
         mins.forEach((info, index) => info.onChange(value.min[index]));
         weights.forEach((info, index) => info.onChange(value.w[index]));
         setIncludeArmor(value.inc);

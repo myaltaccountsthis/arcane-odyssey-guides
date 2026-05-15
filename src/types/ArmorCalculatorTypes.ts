@@ -12,6 +12,8 @@ export type ArmorCalculatorInput = {
   drawback: number;
   warding: number;
   fightDuration: number;
+  dragonBlood: number;
+  shieldDef: number;
   minStats: number[];
   weights: number[];
   includeArmor: string[];

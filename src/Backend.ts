@@ -40,6 +40,8 @@ export const statToIndex: { [key: string]: number } = {
 const MAX_LEVEL = 175;
 const BASE_HEALTH = 100 + 9 * (MAX_LEVEL - 1);
 const BASE_ATTACK = 20 + (MAX_LEVEL - 1);
+const REGEN_COEFF = .00675
+const DRAGON_BLOOD_BLESSING = [0, .02, .04, .08, .12, .16, .18, .2]
 export const NUM_STATS = 9;
 const MAX_JEWELS = 13;
 // const MAIN_STATS = StatOrder.slice(0, NUM_STATS);
@@ -82,6 +84,8 @@ let insanity = 0;
 let drawback = 0;
 let warding = 0;
 let fightDuration = 0;
+let dragonBlood = 0;
+let shieldDef = 0;
 const minStats = Array(NUM_STATS).fill(0);
 const weights = Array(NUM_STATS).fill(100);
 let includeArmor = new TreeSet<string>((a, b) => a.localeCompare(b));
@@ -105,6 +109,8 @@ export function updateInputs(options: ArmorCalculatorInput) {
   drawback = options.drawback;
   warding = options.warding;
   fightDuration = options.fightDuration;
+  dragonBlood = options.dragonBlood;
+  shieldDef = options.shieldDef;
   for (let i = 0; i < minStats.length; i++) {
     minStats[i] = options.minStats[i] >= 0 ? options.minStats[i] : -100000;
   }
@@ -426,8 +432,8 @@ export function getFormattedNumberStr(num: number, decimals: number) {
 
 // pow/def multiplier without weight
 export function getBaseMult(stats: number[], useWeight = false) {
-  const baseFightHP = BASE_HEALTH * (1 + fightDuration * 0.00675);
-  const extraFightHP = stats[1];
+  const baseFightHP = BASE_HEALTH * (1 + fightDuration * REGEN_COEFF);
+  const extraFightHP = stats[1] + Math.round(DRAGON_BLOOD_BLESSING[dragonBlood] * BASE_HEALTH) * (1 + fightDuration * REGEN_COEFF);
   return (
     // Defense, Vitality multiplier
     ((extraFightHP / baseFightHP) *
@@ -595,6 +601,7 @@ export function calculateStats(armorList: Armor[]) {
     const armorStats = armor.getTotalStats();
     stats = stats.map((val, i) => val + armorStats[i]);
   }
+  stats[Order.indexOf("defense")] += shieldDef;
   return stats;
 }
 
