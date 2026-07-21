@@ -464,7 +464,7 @@ function otherMult(stats: number[]) {
       1) *
     ((estimateMultComplex(stats[statToIndex.range]) - 1) * weights[5] * 0.8 +
       1) *
-    ((estimateMultComplex(stats[statToIndex.regeneration]) - 1) * weights[7] * 0.5 +
+    ((estimateMultComplex(stats[statToIndex.regeneration]) - 1) * weights[6] * 0.5 +
       1) *
     ((estimateMultComplex(stats[statToIndex.resistance]) - 1) * weights[7] * 0.55 +
       1) *
